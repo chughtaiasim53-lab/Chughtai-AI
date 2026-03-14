@@ -4,6 +4,7 @@ from duckduckgo_search import DDGS
 from gtts import gTTS
 import base64
 import pandas as pd
+import random
 
 # --- API Connection ---
 client = Groq(api_key="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")
@@ -36,8 +37,7 @@ with st.sidebar:
 # --- MAIN UI ---
 st.markdown('<h1 class="main-title">🚀 Chughtai AI - Super App</h1>', unsafe_allow_html=True)
 
-# Ab saare 5 Tabs ek saath hain
-tabs = st.tabs(["💬 Chat & News", "🚜 Kisan & Ghar", "📝 Kharcha Register", "🌊 Tube-well Calc", "🌾 Mandi Rates"])
+tabs = st.tabs(["💬 Chat", "🚜 Fasal & Ghar", "📝 Kharcha", "🌊 Tube-well", "🌾 Mandi", "😂 Latifay"])
 
 # --- TAB 1: SMART CHAT ---
 with tabs[0]:
@@ -45,7 +45,7 @@ with tabs[0]:
         with st.chat_message("user"): st.write(chat["u"])
         with st.chat_message("assistant"): st.write(chat["b"])
 
-    if prompt := st.chat_input("Gandum rate ya koi bhi sawal..."):
+    if prompt := st.chat_input("Gandum rate ya koi sawal..."):
         st.session_state.history.append({"u": prompt, "b": "Thinking..."})
         st.rerun()
 
@@ -71,27 +71,43 @@ with tabs[0]:
             with open("v.mp3", "rb") as f:
                 st.markdown(f'<audio src="data:audio/mp3;base64,{base64.b64encode(f.read()).decode()}" controls autoplay></audio>', unsafe_allow_html=True)
 
-# --- TAB 2: KISAN & GHAR (PURANE FUNCTIONS WAPAS) ---
+# --- TAB 2: FASAL & GHAR (UPDATED WITH CROP TYPES) ---
 with tabs[1]:
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("<div class='card'><h3>🌾 Kisan Calculator</h3>", unsafe_allow_html=True)
+        st.markdown("<div class='card'><h3>🌾 Fasal Calculator</h3>", unsafe_allow_html=True)
+        crop_type = st.selectbox("Fasal Chunain:", ["Gandum (Wheat)", "Kapas (Cotton)", "Thomm (Garlic G1)", "Makai (Corn)", "Munji (Rice)"])
         acre = st.number_input("Zameen (Acres):", value=3.7, key="k_acre")
         if st.button("Hisaab Lagayein"):
-            st.success(f"DAP: {round(acre*1.2, 1)} Bori | Urea: {round(acre*2.5, 1)} Bori")
+            # Fasal ke mutabiq calculations
+            rates = {
+                "Gandum (Wheat)": {"d": 1.2, "u": 2.5, "p": 0.5},
+                "Kapas (Cotton)": {"d": 1.5, "u": 3.0, "p": 1.0},
+                "Thomm (Garlic G1)": {"d": 2.5, "u": 2.0, "p": 2.0},
+                "Makai (Corn)": {"d": 2.0, "u": 4.0, "p": 1.0},
+                "Munji (Rice)": {"d": 1.0, "u": 2.0, "p": 0.5}
+            }
+            f = rates[crop_type]
+            st.success(f"**{crop_type} Report ({acre} Acre):**")
+            st.write(f"🧪 DAP: {round(acre * f['d'], 1)} Bori")
+            st.write(f"🧪 Urea: {round(acre * f['u'], 1)} Bori")
+            st.write(f"🧪 Potash: {round(acre * f['p'], 1)} Bori")
         st.markdown("</div>", unsafe_allow_html=True)
     with col2:
         st.markdown("<div class='card'><h3>🏠 Ghar Planner</h3>", unsafe_allow_html=True)
         marla = st.number_input("Marla Size:", value=5.0, key="m_size")
         if st.button("Estimate Check"):
-            st.success(f"Intein: {int(marla*15000)} | Cement: {int(marla*110)} Bori")
+            st.success(f"**{marla} Marla ka Material:**")
+            st.write(f"🧱 Intein: {int(marla*15000)}")
+            st.write(f"🧪 Cement: {int(marla*110)} Bori")
+            st.write(f"🏗️ Sarya (Steel): {round(marla*0.8, 1)} Ton")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # --- TAB 3: KHARCHA REGISTER ---
 with tabs[2]:
     st.markdown("<div class='card'><h3>📝 Digital Kharcha Register</h3>", unsafe_allow_html=True)
-    item = st.text_input("Kharcha kis cheez par hua?")
-    amount = st.number_input("Rupay (Amount):", min_value=0)
+    item = st.text_input("Kharcha Detail:")
+    amount = st.number_input("Rupay:", min_value=0)
     if st.button("Save Kharcha"):
         st.session_state.kharcha_list.append({"Item": item, "Amount": amount})
         st.success("Save ho gaya!")
@@ -101,18 +117,28 @@ with tabs[2]:
         st.write(f"**Total: Rs. {df['Amount'].sum()}**")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- TAB 4: TUBE-WELL CALC ---
+# --- TAB 4: TUBE-WELL ---
 with tabs[3]:
     st.markdown("<div class='card'><h3>🌊 Tube-well Diesel Calc</h3>", unsafe_allow_html=True)
-    h = st.number_input("Kitne ghante chala?", value=1.0)
-    dr = st.number_input("Diesel Price:", value=280.0)
-    if st.button("Kharcha Calculate"):
-        total = h * 3.5 * dr # 3.5 litre average per hour
-        st.error(f"Total Diesel Kharcha: Rs. {int(total)}")
+    h = st.number_input("Ghante (Hours):", value=1.0)
+    if st.button("Diesel Kharcha"):
+        st.error(f"Total Diesel Kharcha: Rs. {int(h * 3.5 * 280)}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- TAB 5: MANDI RATES ---
+# --- TAB 5: MANDI ---
 with tabs[4]:
-    st.markdown("<div class='card'><h3>💹 Live Market Rates</h3>", unsafe_allow_html=True)
+    st.markdown("<div class='card'><h3>💹 Live Mandi Rates</h3>", unsafe_allow_html=True)
     st.write("Gandum: Rs. 4,380 | Gold 24K: Rs. 294,000 | Dollar: Rs. 284.5")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# --- TAB 6: LATIFAY (JOKES) ---
+with tabs[5]:
+    st.markdown("<div class='card'><h3>😂 Thora Hans Lein</h3>", unsafe_allow_html=True)
+    jokes = [
+        "Pathan: Yar ye dunya gol hai kya? \n Dost: Haan. \n Pathan: To phir hum kone mein kyun kharay hain?",
+        "Ustad: Sab se purana janwar konsa hai? \n Shagird: Zebra! \n Ustad: Wo kyun? \n Shagird: Kyunke wo Black and White hai.",
+        "Mian Biwi se: Aaj kya pakaya hai? \n Biwi: Zeher! \n Mian: Theek hai, tum kha kar so jana, main bahar se kha loon ga."
+    ]
+    if st.button("Naya Latifa Sunayein"):
+        st.info(random.choice(jokes))
     st.markdown("</div>", unsafe_allow_html=True)
