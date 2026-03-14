@@ -1,13 +1,20 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Sahi API Key
+# Aapki API Key
 genai.configure(api_key="AIzaSyAskNQNR0gzJWbjbGPREmRStVgHi5wiHdE")
 
-# Stable model jo 404 nahi dega
-model = genai.GenerativeModel('gemini-1.5-flash')
+st.set_page_config(page_title="Chughtai AI", page_icon="✨")
 
-st.title("✨ Chughtai AI Assistant")
+# --- Model Selection Trick ---
+try:
+    # Pehle 2.0 Flash try karein
+    model = genai.GenerativeModel('gemini-2.0-flash')
+except:
+    # Agar 2.0 na chale to 1.5 Flash try karein
+    model = genai.GenerativeModel('gemini-1.5-flash')
+
+st.title("✨ Chughtai AI (Gemini 2.0)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -27,4 +34,4 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error(f"Masla: {str(e)}")
+            st.error(f"Technical Error: {str(e)}")
