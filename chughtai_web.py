@@ -8,8 +8,8 @@ import datetime
 # --- API Connection ---
 client = Groq(api_key="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")
 
-# --- GEMINI PRO DARK UI ---
-st.set_page_config(page_title="Gemini 3 Pro", layout="wide", page_icon="✨")
+# --- CHUGHTAI AI DARK UI CUSTOMIZATION ---
+st.set_page_config(page_title="Chughtai AI", layout="wide", page_icon="✨")
 
 st.markdown("""
     <style>
@@ -44,28 +44,29 @@ st.markdown("""
 if "user_name" not in st.session_state:
     st.session_state.user_name = None
 
-# Agar naam nahi pata, to pehle poocho
+# Welcome Screen (Pehli baar naam poochna)
 if st.session_state.user_name is None:
-    st.markdown('<h1 class="gemini-title">Welcome to Gemini 3</h1>', unsafe_allow_html=True)
+    # Yahan "Gemini 3" ki jagah "Chughtai AI" likha hai
+    st.markdown('<h1 class="gemini-title">Welcome to Chughtai AI</h1>', unsafe_allow_html=True)
     with st.container():
-        st.write("### Hello! Aapka naam kya hai?")
-        naam = st.text_input("Apna naam yahan likhein...", placeholder="e.g. Asim Chughtai")
+        st.write("### Salam! Aapka naam kya hai?")
+        naam = st.text_input("Apna naam likhein...", placeholder="e.g. Asim Chughtai")
         if st.button("Aagay Barhein ✨"):
             if naam:
                 st.session_state.user_name = naam
                 st.rerun()
             else:
-                st.warning("Plz apna naam likhein!")
-    st.stop() # Jab tak naam nahi milega, niche wala code nahi chalega
+                st.warning("Meharbani karke apna naam likhein!")
+    st.stop() 
 
-# --- MAIN GEMINI INTERFACE (Jab naam mil jaye) ---
+# --- MAIN INTERFACE ---
 user_name = st.session_state.user_name
-st.markdown(f'<h1 class="gemini-title">✨ Hi {user_name}<br><span style="color:#e3e3e3">Where should we start?</span></h1>', unsafe_allow_html=True)
+st.markdown(f'<h1 class="gemini-title">✨ Hi {user_name}<br><span style="color:#e3e3e3">Where should we start with Chughtai AI?</span></h1>', unsafe_allow_html=True)
 
-# Central Suggestion Buttons
+# Central Buttons
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    if st.button("🖼️ Create image"): st.toast("Image mode active! Just type what you want.")
+    if st.button("🖼️ Create image"): st.toast("Just describe the image in the chat!")
 with col2:
     if st.button("🎵 Create music"): st.info("Music feature coming soon!")
 with col3:
@@ -74,27 +75,27 @@ with col4:
     if st.button("📝 Write anything"): pass
 
 # --- Search & Chat Logic ---
-if prompt := st.chat_input(f"Ask Gemini 3, {user_name}..."):
+if prompt := st.chat_input(f"Ask Chughtai AI, {user_name}..."):
     
-    # Image logic (if keyword found)
+    # Image logic
     if "create image" in prompt.lower() or "tasveer" in prompt.lower():
         with st.spinner("🎨 Generating image..."):
             img_url = f"https://pollinations.ai/p/{prompt.replace(' ', '%20')}?width=1080&height=1080&model=flux"
             st.image(img_url, caption=f"Result for: {prompt}")
     else:
-        # Accurate Search Chat
+        # Search Chat
         with st.chat_message("assistant"):
             try:
-                with st.spinner("Searching live data..."):
+                with st.spinner("Checking official sources..."):
                     with DDGS() as ddgs:
-                        r = [res for res in ddgs.text(f"{prompt} Pakistan 2026", max_results=3)]
+                        r = [res for res in ddgs.text(f"{prompt} Pakistan latest rates 2026", max_results=3)]
                         context = "\n".join([res['body'] for res in r])
                 
                 aaj = datetime.date.today().strftime("%d %B %Y")
                 completion = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[
-                        {"role": "system", "content": f"Aap Gemini 3 Pro hain. User ka naam {user_name} hai. Roman Urdu mein jawab dein. Date: {aaj}. Context: {context}"},
+                        {"role": "system", "content": f"Aap Chughtai AI hain. User ka naam {user_name} hai. Roman Urdu mein jawab dein. Date: {aaj}. Context: {context}"},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0
