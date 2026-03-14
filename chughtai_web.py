@@ -3,13 +3,12 @@ from groq import Groq
 from duckduckgo_search import DDGS
 from gtts import gTTS
 import base64
-import speech_recognition as sr # Naya Voice-to-Text function
 
 # --- API Connection ---
 client = Groq(api_key="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")
 
 # --- UI STYLE ---
-st.set_page_config(page_title="Chughtai AI - Voice Pro", layout="wide")
+st.set_page_config(page_title="Chughtai AI - Professional", layout="wide")
 
 st.markdown("""
     <style>
@@ -20,93 +19,83 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SESSION STATE (HISTORY) ---
+# --- SESSION STATE (HISTORY ONLY) ---
 if "history" not in st.session_state:
     st.session_state.history = []
-if "voice_text" not in st.session_state:
-    st.session_state.voice_text = ""
 
 # --- MAIN SCREEN ---
-st.markdown('<h1 class="main-title">✨ Chughtai AI - Voice & History</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">✨ Chughtai AI - History Pro</h1>', unsafe_allow_html=True)
 
 # --- SIDEBAR HISTORY ---
 with st.sidebar:
-    st.markdown("### 📜 Purani Baatein")
-    if st.button("🗑️ Sab Mita Dein"):
+    st.markdown("### 📜 Chat History")
+    if st.button("🗑️ Clear History"):
         st.session_state.history = []
         st.rerun()
     st.divider()
-    for chat in reversed(st.session_state.history):
-        st.write(f"👉 {chat['u'][:35]}...")
+    if not st.session_state.history:
+        st.info("Abhi koi purani baat nahi hai.")
+    else:
+        for chat in reversed(st.session_state.history):
+            st.write(f"👉 {chat['u'][:35]}...")
 
-tab1, tab2, tab3 = st.tabs(["💬 Chat & Voice", "🚜 Kisan Markaz", "🏠 Ghar Planner"])
+# --- TABS ---
+tab1, tab2, tab3 = st.tabs(["💬 Chat & Live News", "🚜 Kisan Markaz", "🏠 Ghar Planner"])
 
-# --- TAB 1: VOICE TO TEXT & CHAT ---
+# --- TAB 1: CHAT & LIVE NEWS ---
 with tab1:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.write("🎤 **Bol kar sawal puchiye:**")
-    
-    if st.button("Record Voice (Bolna shuru karein)"):
-        r = sr.Recognizer()
-        with sr.Microphone() as source:
-            st.info("AI sun raha hai... Bolen!")
-            audio = r.listen(source)
-            try:
-                st.session_state.voice_text = r.recognize_google(audio, language='ur-PK')
-                st.success(f"Aapne kaha: {st.session_state.voice_text}")
-            except:
-                st.error("Awaz samajh nahi aayi, dobara koshish karein.")
-    
-    # Chat Display
+    # Display Chat
     for chat in st.session_state.history:
         with st.chat_message("user"): st.write(chat["u"])
         with st.chat_message("assistant"): st.write(chat["b"])
 
-    # Input Box (Voice text auto-fill)
-    prompt = st.chat_input("Yahan likhein ya oper se Record karein...", key="chat_input")
-    
-    # Agar voice se text aaya hai ya likha hai
-    final_input = st.session_state.voice_text if st.session_state.voice_text and not prompt else prompt
-
-    if final_input:
-        st.session_state.history.append({"u": final_input, "b": "Thinking..."})
-        st.session_state.voice_text = "" # Clear voice cache
+    # Input Box
+    if prompt := st.chat_input("Aaj ki news ya rates poochen..."):
+        st.session_state.history.append({"u": prompt, "b": "Thinking..."})
         st.rerun()
 
     if st.session_state.history and st.session_state.history[-1]["b"] == "Thinking...":
         last_q = st.session_state.history[-1]["u"]
         with st.chat_message("assistant"):
-            search_context = ""
-            try:
-                with DDGS() as ddgs:
-                    results = list(ddgs.text(f"{last_q} Pakistan news 2026", max_results=2))
-                    search_context = "\n".join([r['body'] for r in results])
-            except: pass
+            with st.spinner("Checking internet..."):
+                search_data = ""
+                try:
+                    with DDGS() as ddgs:
+                        results = list(ddgs.text(f"{last_q} Pakistan news 2026", max_results=2))
+                        search_data = "\n".join([r['body'] for r in results])
+                except: pass
 
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": "Aap Chughtai AI hain. Roman Urdu mein jawab dein. Date: 15 March 2026."},
-                          {"role": "user", "content": f"Context: {search_context}\n\nQuestion: {last_q}"}]
-            )
-            ans = completion.choices[0].message.content
-            st.write(ans)
-            st.session_state.history[-1]["b"] = ans
-            
-            # Voice Reply (AI bolega bhi)
-            tts = gTTS(text=ans, lang='hi')
-            tts.save("v.mp3")
-            with open("v.mp3", "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
-                st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" controls autoplay></audio>', unsafe_allow_html=True)
+                try:
+                    completion = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[{"role": "system", "content": "Aap Chughtai AI hain. Roman Urdu mein jawab dein. Date: 15 March 2026."},
+                                  {"role": "user", "content": f"Data: {search_data}\n\nQuestion: {last_q}"}]
+                    )
+                    ans = completion.choices[0].message.content
+                    st.write(ans)
+                    st.session_state.history[-1]["b"] = ans
+                    
+                    # Voice Output (AI bolega)
+                    tts = gTTS(text=ans, lang='hi')
+                    tts.save("v.mp3")
+                    with open("v.mp3", "rb") as f:
+                        b64 = base64.b64encode(f.read()).decode()
+                        st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" controls autoplay></audio>', unsafe_allow_html=True)
+                except:
+                    st.error("API Limit poori ho gayi hai.")
+
+# --- TAB 2: KISAN CALCULATOR ---
+with tab2:
+    st.markdown("<div class='card'><h3>🌾 Kisan Markaz</h3>", unsafe_allow_html=True)
+    a = st.number_input("Zameen (Acres):", value=3.7)
+    if st.button("Hisaab 🚜"):
+        st.success(f"{a} Acre Report: DAP {round(a*1.2, 1)} Bori, Urea {round(a*2.5, 1)} Bori.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- TAB 2 & 3 (Kisan & Ghar) ---
-with tab2:
-    st.write("### 🚜 Kisan Calculator")
-    acre = st.number_input("Acres:", value=3.7)
-    if st.button("Hisaab"): st.success(f"DAP: {round(acre*1.2,1)} | Urea: {round(acre*2.5,1)}")
-
+# --- TAB 3: GHAR PLANNER ---
 with tab3:
-    st.write("### 🏠 Ghar Planner")
-    marla = st.number_input("Marla:", value=5.0)
-    if st.button("Estimate"): st.success(f"Intein: {int(marla*15000)} | Cement: {int(marla*110)}")
+    st.markdown("<div class='card'><h3>🏠 Ghar Planner</h3>", unsafe_allow_html=True)
+    m = st.number_input("Marla:", value=5.0)
+    if st.button("Estimate 🏗️"):
+        st.success(f"{m} Marla Estimate: {int(m*15000)} Intein, {int(m*110)} Bori Cement.")
+    st.markdown("</div>", unsafe_allow_html=True)
