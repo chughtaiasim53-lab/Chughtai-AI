@@ -3,7 +3,7 @@ import google.generativeai as genai
 
 # Setup
 genai.configure(api_key="AIzaSyD-Msv12DuyRdKH6yG_BOep9_lT4pha4sk")
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
 
