@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # Setup API Key
-genai.configure(api_key="AIzaSyD-Msv12DuyRdKH6yG_BOep9_lT4pha4sk")
+genai.configure(api_key="AIzaSyAn0IvcL2ja2oc8saRKNsFoxODO15tfcO0")
 
 # Ye tareeka har model ko 404 se bachata hai
 model = genai.GenerativeModel('gemini-pro') 
