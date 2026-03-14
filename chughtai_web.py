@@ -1,9 +1,8 @@
 import streamlit as st
 from groq import Groq
 from gtts import gTTS
-from duckduckgo_search import DDGS  # Live news ke liye
+from duckduckgo_search import DDGS # Live News ke liye
 import os
-import base64
 
 # Groq API Key
 client = Groq(api_key="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")
@@ -29,7 +28,7 @@ if "messages" not in st.session_state:
 # Welcome message
 if not st.session_state.messages:
     st.markdown("### Hello,")
-    st.info("Main aapka personal AI dost hoon. Aap mujhse live news, kheti baari ya family ke bare mein kuch bhi puch sakte hain.")
+    st.info("Main aapka personal AI dost hoon. Aap mujhse Live News, kheti baari ya family ke bare mein kuch bhi puch sakte hain.")
 
 # Chat History Display
 for message in st.session_state.messages:
@@ -44,21 +43,18 @@ if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
 
     with st.chat_message("assistant"):
         try:
-            # 1. LIVE SEARCH (Agar news ya mausam pucha jaye)
-            search_context = ""
-            news_keywords = ["news", "khabar", "taza", "match", "weather", "mausam", "price", "rate"]
-            if any(word in prompt.lower() for word in news_keywords):
-                with st.spinner("Internet se taza news nikaal raha hoon..."):
-                    results = DDGS().text(prompt, max_results=3)
-                    search_context = "\n".join([r['body'] for r in results])
+            # --- LIVE NEWS SEARCH (Internet Se Data Lena) ---
+            with st.spinner("Internet par taza khabrein dhoond raha hoon..."):
+                search_query = DDGS().text(prompt, max_results=3)
+                search_data = "\n".join([r['body'] for r in search_query])
 
-            # 2. GROQ AI RESPONSE
+            # Groq AI Response with Search Data
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {
                         "role": "system", 
-                        "content": f"Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. Roman Urdu mein jawab dein. Asim ke Father: Qadir Dad, Beta: Jahandad. Live Context: {search_context}"
+                        "content": f"Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. Roman Urdu mein jawab dein. Internet Data: {search_data}. Asim ke Father: Qadir Dad, Beta: Jahandad."
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -67,18 +63,10 @@ if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # 3. NATURAL VOICE (Listen Option)
-            # 'hi' (Hindi) voice Urdu ke liye zyada natural lagti hai
+            # --- LISTEN OPTION (Audio Generator) ---
+            # 'hi' (Hindi) voice Urdu ke liye zyada natural/insaani lagti hai
             tts = gTTS(text=answer, lang='hi', slow=False)
             tts.save("voice.mp3")
-            
-            # Autoplay script
-            with open("voice.mp3", "rb") as f:
-                data = f.read()
-                b64 = base64.b64encode(data).decode()
-                audio_html = f'<audio autoplay="true" src="data:audio/mp3;base64,{b64}">'
-                st.markdown(audio_html, unsafe_allow_html=True)
-            
             st.audio("voice.mp3", format="audio/mp3")
             
         except Exception as e:
