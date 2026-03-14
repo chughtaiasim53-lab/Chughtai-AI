@@ -1,36 +1,35 @@
 import streamlit as st
-model = genai.GenerativeModel('gemini-pro')
+import google.generativeai as genai
 
-# Aapki nayi API Key yahan set kar di hai
-genai.configure(api_key="AIzaSyAskNQNR0gzJWbjbGPREmRStVgHi5wiHdE")
+# Aapki nikaali hui Nayi API Key
+API_KEY = "AIzaSyAskNQNR0gzJWbjbGPREmRStVgHi5wiHdE"
 
-# Stable model istemal kar rahe hain
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Setup configuration
+genai.configure(api_key=API_KEY)
 
-st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
+# Page Setup
+st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="centered")
 
-# Gemini style UI
+# Gemini style Dark Mode CSS
 st.markdown("""
     <style>
-    .main { background-color: #131314; }
-    .stChatInput { position: fixed; bottom: 3rem; }
+    .stApp { background-color: #131314; color: white; }
+    .stChatInputContainer { padding-bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
+st.title("✨ Chughtai AI Assistant")
+
+# Initialize Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Welcome Header
-if not st.session_state.messages:
-    st.markdown("<h1 style='text-align: center; color: white;'>Hello, Asim Chughtai</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #888;'>Main aapki kaise madad kar sakta hoon?</p>", unsafe_allow_html=True)
-
-# Chat history dikhana
+# Display Chat
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input aur Response
+# User Input
 if prompt := st.chat_input("Yahan kuch bhi search karein..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -38,10 +37,19 @@ if prompt := st.chat_input("Yahan kuch bhi search karein..."):
 
     with st.chat_message("assistant"):
         try:
+            # Ye 'gemini-1.5-flash' ka sabse stable tareeka hai
+            model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(prompt)
-            if response.text:
+            
+            if response:
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            # Agar koi masla aaye to asli wajah bataye
-            st.error(f"Masla: {str(e)}")
+            # Agar 1.5-flash masla kare to ye 'gemini-pro' par khud hi switch ho jayega
+            try:
+                model_alt = genai.GenerativeModel('gemini-pro')
+                response_alt = model_alt.generate_content(prompt)
+                st.markdown(response_alt.text)
+                st.session_state.messages.append({"role": "assistant", "content": response_alt.text})
+            except Exception as e2:
+                st.error(f"Technical Error: {str(e2)}")
