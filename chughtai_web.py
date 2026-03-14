@@ -1,11 +1,12 @@
+
 import streamlit as st
 import google.generativeai as genai
 
 # Aapki API Key
 genai.configure(api_key="AIzaSyBCvOiIEuU7mWsqTCBddevX2on2xQqmucE")
 
-# 400 error se bachne ke liye sabse stable model
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 404 se bachne ke liye sabse basic model name
+model = genai.GenerativeModel('gemini-pro')
 
 st.title("✨ Chughtai AI Assistant")
 
@@ -23,9 +24,8 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # Simple content generation
             response = model.generate_content(prompt)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error(f"Technical Error: {str(e)}")
+            st.error(f"Error: {str(e)}")  
