@@ -1,24 +1,20 @@
-
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 
-# Aapki DeepSeek API Key yahan set kar di hai
-client = OpenAI(
-    api_key="sk-6627f6d39cd04103bedfe8944a1d096c", 
-    base_url="https://api.deepseek.com"
-)
+# Aapki Groq API Key yahan set kar di hai
+client = Groq(api_key="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")
 
-st.set_page_config(page_title="Chughtai AI (DeepSeek)", page_icon="🚀", layout="centered")
+st.set_page_config(page_title="Chughtai AI", page_icon="⚡", layout="centered")
 
-# Deep style CSS
+# Dark Theme CSS
 st.markdown("""
     <style>
-    .main { background-color: #0d1117; color: white; }
+    .stApp { background-color: #0f1115; color: white; }
     .stChatInput { position: fixed; bottom: 3rem; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🚀 Chughtai AI - DeepSeek")
+st.title("⚡ Chughtai AI (Super Fast)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -28,26 +24,24 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input aur Response
-if prompt := st.chat_input("DeepSeek se kuch bhi puchein..."):
+# User input
+if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # DeepSeek model call
-            response = client.chat.completions.create(
-                model="deepseek-chat",
+            # Llama 3.3 model jo sabse naya aur fast hai
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": "Aap ek madadgaar AI hain jiska naam Chughtai AI hai."},
+                    {"role": "system", "content": "Aapka naam Chughtai AI hai. Aap Asim Chughtai ke banaye huay ek madadgaar assistant hain. Hamesha Urdu ya Roman Urdu mein jawab dein."},
                     {"role": "user", "content": prompt}
                 ],
-                stream=False
             )
-            answer = response.choices[0].message.content
+            answer = completion.choices[0].message.content
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as e:
-            st.error(f"DeepSeek Error: {str(e)}")
-            st.info("Check karein ke aapke DeepSeek account mein balance (credits) maujood hai ya nahi.")
+            st.error(f"Technical Error: {str(e)}")
