@@ -1,31 +1,53 @@
 
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 
-# Aapki API Key
-genai.configure(api_key="AIzaSyBCvOiIEuU7mWsqTCBddevX2on2xQqmucE")
+# Aapki DeepSeek API Key yahan set kar di hai
+client = OpenAI(
+    api_key="sk-6627f6d39cd04103bedfe8944a1d096c", 
+    base_url="https://api.deepseek.com"
+)
 
-# 404 se bachne ke liye sabse basic model name
-model = genai.GenerativeModel('gemini-pro')
+st.set_page_config(page_title="Chughtai AI (DeepSeek)", page_icon="🚀", layout="centered")
 
-st.title("✨ Chughtai AI Assistant")
+# Deep style CSS
+st.markdown("""
+    <style>
+    .main { background-color: #0d1117; color: white; }
+    .stChatInput { position: fixed; bottom: 3rem; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("🚀 Chughtai AI - DeepSeek")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Chat history dikhana
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Yahan sawal likhein..."):
+# User input aur Response
+if prompt := st.chat_input("DeepSeek se kuch bhi puchein..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            response = model.generate_content(prompt)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
+            # DeepSeek model call
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": "Aap ek madadgaar AI hain jiska naam Chughtai AI hai."},
+                    {"role": "user", "content": prompt}
+                ],
+                stream=False
+            )
+            answer = response.choices[0].message.content
+            st.markdown(answer)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as e:
-            st.error(f"Error: {str(e)}")  
+            st.error(f"DeepSeek Error: {str(e)}")
+            st.info("Check karein ke aapke DeepSeek account mein balance (credits) maujood hai ya nahi.")
