@@ -5,57 +5,67 @@ from gtts import gTTS
 import base64
 import datetime
 
-# --- API Setup ---
+# --- API Connection ---
+# Aapki Key: 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
 client = Groq(api_key="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")
 
-# --- GEMINI STYLE ACCURATE INSTRUCTIONS ---
-system_instructions = """
-Role: Aap ek High-Accuracy AI Assistant hain, jaise Gemini.
-Aapka Maqsad: User ko 100% sahi aur live data dena.
+# --- Interface Design (Beauty + Gemini Look) ---
+st.set_page_config(page_title="Chughtai Gemini-AI v2", page_icon="🤖", layout="centered")
 
-Rules:
-1. User ki har baat par 'Theek hai' nahi kehna. Pehle internet search results ko check karein.
-2. Agar user kahe ke 'Gold 5 lakh hai' aur internet kahe '2.8 lakh', to aap user ko foran correct karein.
-3. Roman Urdu mein jawab dein aur rates ko hamesha **Bold** likhein.
-4. Agar internet par kisi sawal ka jawab na miley, to kahein 'Mujhe iska live data nahi mila' bajaye ghalat jawab dene ke.
-5. Har jawab ke end par 'Source: Internet Search' lazmi likhein.
+st.markdown("""
+    <style>
+    .stApp { background-color: #0b0e14; color: #ffffff; }
+    .stChatInputContainer { border-radius: 20px !important; border: 2px solid #4facfe !important; }
+    .stChatMessage { background: rgba(255,255,255,0.05); border-radius: 15px; border-left: 5px solid #4facfe; }
+    h1 { background: -webkit-linear-gradient(#00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("🤖 Chughtai Super-Accurate AI")
+
+# Aaj ki Date
+aaj = datetime.date.today().strftime("%d %B %Y")
+st.write(f"📅 Aaj ki Date: **{aaj}** | Status: **High Accuracy Mode**")
+
+# System ki sakht hidayat
+system_rules = f"""
+Aap ek High-Accuracy Assistant hain. Aaj {aaj} hai.
+1. User (Asim Chughtai) ko hamesha 100% sahi rates batane hain.
+2. Agar internet par purana data miley, to user ko batayein ke 'Mujhe abhi live rate nahi mila'.
+3. Petrol aur Gold ke rates ke liye sirf 2026 ki news par yaqeen karein.
+4. Jawab Roman Urdu mein dein aur ahem maloomat ko Bold karein.
+5. User ki ghalat baat par 'Theek hai' mat kahein, usay sahi data dikhayein.
 """
 
-st.set_page_config(page_title="Chughtai Gemini-AI", layout="centered")
-st.title("🤖 Chughtai Gemini-Style AI")
-
-aaj = datetime.date.today().strftime("%d %B %Y")
-st.write(f"📅 Aaj ki Date: **{aaj}** | Accuracy: **High**")
-
-if prompt := st.chat_input("Sona, Petrol ya koi bhi sawal puchiye..."):
+if prompt := st.chat_input("Sona, Petrol ya mandi ke rates puchiye..."):
     st.chat_message("user").markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            with st.spinner("Gemini-style accuracy check ho raha hai..."):
+            with st.spinner("Accuracy check ho raha hai..."):
                 # 1. LIVE WEB SEARCH
                 with DDGS() as ddgs:
-                    # Specific query for Pakistan today
-                    search_query = f"{prompt} Pakistan latest official data {aaj}"
-                    results = [r for r in ddgs.text(search_query, max_results=5)]
-                    live_data = "\n".join([f"Web Info: {r['body']}" for r in results])
+                    # Sirf sabse taza results dhoondne ke liye query
+                    search_query = f"{prompt} Pakistan latest official rate today {aaj} news"
+                    results = [r for r in ddgs.text(search_query, max_results=3)]
+                    live_context = "\n".join([f"Live News: {r['body']}" for r in results])
 
-            # 2. ACCURATE PROCESSING
+            # 2. ACCURATE PROCESSING (Temperature 0 means NO GUESSING)
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": f"{system_instructions}\nToday's Context: {live_data}\nDate: {aaj}"},
+                    {"role": "system", "content": f"{system_rules}\nWeb Data: {live_context}"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.1 # Is se AI apni taraf se baatein nahi banata (High Accuracy)
+                temperature=0  # Is se AI ghalat tukkay nahi marega
             )
             answer = completion.choices[0].message.content
             st.markdown(answer)
 
             # 3. VOICE
             tts = gTTS(text=answer, lang='hi')
-            tts.save("accurate_voice.mp3")
-            with open("accurate_voice.mp3", "rb") as f:
+            tts.save("voice.mp3")
+            with open("voice.mp3", "rb") as f:
                 data = f.read()
                 b64 = base64.b64encode(data).decode()
                 st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" autoplay="true"></audio>', unsafe_allow_html=True)
