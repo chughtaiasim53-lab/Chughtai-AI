@@ -8,7 +8,7 @@ import datetime
 # --- API Connection ---
 client = Groq(api_key="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")
 
-st.set_page_config(page_title="Chughtai AI - Professional Kisan", layout="wide")
+st.set_page_config(page_title="Chughtai AI - Professional", layout="wide")
 
 st.markdown("""
     <style>
@@ -19,54 +19,75 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">🌾 Chughtai AI - Accurate Kisan Calculator</h1>', unsafe_allow_html=True)
+# --- SESSION STATE ---
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-tab1, tab2 = st.tabs(["💬 Chat & Search", "🚜 Accurate Calculator"])
+# --- MAIN INTERFACE ---
+st.markdown('<h1 class="main-title">🌾 Chughtai AI - Searching Fixed</h1>', unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["💬 Search & Chat", "🚜 Precise Calculator"])
 
 with tab2:
-    st.markdown("<div class='kisan-card'><h3>Zameen aur Fasal ki Tafseel</h3>", unsafe_allow_html=True)
-    
+    st.markdown("<div class='kisan-card'><h3>Zameen ka Accurate Hisaab</h3>", unsafe_allow_html=True)
     col_a, col_b = st.columns(2)
     with col_a:
-        # Ab ye 3.7 ya koi bhi point wala value sahi calculate karega
-        acre = st.number_input("Zameen (Acres) likhein:", min_value=0.1, step=0.1, value=3.7)
+        # 3.7 ya 2.5, ab har point par calculation sahi hogi
+        acre = st.number_input("Zameen (Acres):", min_value=0.1, step=0.1, value=3.7)
     with col_b:
-        fasal = st.selectbox("Fasal (Crop) select karein:", 
-                            ["Gandum (Wheat)", "Rice (Basmati)", "Rice (Hybrid)", "Makka (Corn)", "Onion (Pyaz)", "Thomm (Garlic)"])
+        fasal = st.selectbox("Fasal select karein:", ["Gandum (Wheat)", "Rice (Basmati)", "Makka (Corn)", "Thomm (Garlic)", "Onion (Pyaz)"])
     
-    if st.button("Mukammal Calculation Nikalein ✨"):
-        # --- FIXED FORMULAS PER ACRE ---
-        if fasal == "Gandum (Wheat)":
-            beej_per_acre = 50; dap_per_acre = 1.0; urea_per_acre = 2.0; potash_per_acre = 0.5; zinc_per_acre = 2.0
-        elif "Basmati" in fasal:
-            beej_per_acre = 6; dap_per_acre = 1.0; urea_per_acre = 2.0; potash_per_acre = 0.5; zinc_per_acre = 5.0
-        elif "Hybrid" in fasal:
-            beej_per_acre = 9; dap_per_acre = 1.5; urea_per_acre = 3.0; potash_per_acre = 0.75; zinc_per_acre = 5.0
-        elif fasal == "Thomm (Garlic)":
-            beej_per_acre = 250; dap_per_acre = 2.0; urea_per_acre = 2.5; potash_per_acre = 1.0; zinc_per_acre = 3.0
-        elif fasal == "Onion (Pyaz)":
-            beej_per_acre = 4; dap_per_acre = 1.5; urea_per_acre = 2.0; potash_per_acre = 0.5; zinc_per_acre = 2.0
-        elif fasal == "Makka (Corn)":
-            beej_per_acre = 10; dap_per_acre = 1.5; urea_per_acre = 3.5; potash_per_acre = 1.0; zinc_per_acre = 3.0
-        else:
-            beej_per_acre = 40; dap_per_acre = 1.0; urea_per_acre = 2.0; potash_per_acre = 0.5; zinc_per_acre = 2.0
-
-        # Final Multiplication with Acre (Precision 2 decimals)
-        total_beej = round(acre * beej_per_acre, 2)
-        total_dap = round(acre * dap_per_acre, 2)
-        total_urea = round(acre * urea_per_acre, 2)
-        total_potash = round(acre * potash_per_acre, 2)
-        total_zinc = round(acre * zinc_per_acre, 2)
-
-        st.markdown(f"### 📊 {acre} Acre {fasal} ki Accurate Report")
-        st.markdown(f"<div class='calc-row'><span>🌱 **Total Beej (Seed):**</span> <span>{total_beej} KG</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🧪 **Total DAP Khad:**</span> <span>{total_dap} Bori</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🧪 **Total Urea Khad:**</span> <span>{total_urea} Bori</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🧪 **Total Potash (SOP):**</span> <span>{total_potash} Bori</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🧪 **Total Zinc (33%):**</span> <span>{total_zinc} KG</span></div>", unsafe_allow_html=True)
-        
-    st.markdown("</div>", unsafe_allow_html=True)
+    if st.button("Hisaab Lagayein ✨"):
+        # Formulas fix kar diye hain
+        rates = {
+            "Gandum (Wheat)": {"beej": 50, "dap": 1, "urea": 2, "potash": 0.5},
+            "Rice (Basmati)": {"beej": 6, "dap": 1, "urea": 2, "potash": 0.5},
+            "Makka (Corn)": {"beej": 10, "dap": 1.5, "urea": 3.5, "potash": 1},
+            "Thomm (Garlic)": {"beej": 250, "dap": 2, "urea": 2.5, "potash": 1},
+            "Onion (Pyaz)": {"beej": 4, "dap": 1.5, "urea": 2, "potash": 0.5}
+        }
+        f = rates[fasal]
+        st.success(f"### {acre} Acre {fasal} Report")
+        st.write(f"🌱 **Beej (Seed):** {round(acre * f['beej'], 2)} KG")
+        st.write(f"🧪 **DAP Khad:** {round(acre * f['dap'], 2)} Bori")
+        st.write(f"🧪 **Urea Khad:** {round(acre * f['urea'], 2)} Bori")
+        st.write(f"🧪 **Potash:** {round(acre * f['potash'], 2)} Bori")
 
 with tab1:
-    # (Chat logic remain same as previous)
-    pass
+    if prompt := st.chat_input("Aaj ka petrol ya sona rate poochen..."):
+        st.session_state.history.append({"u": prompt, "b": "..."})
+        
+        with st.chat_message("user"): st.write(prompt)
+        with st.chat_message("assistant"):
+            try:
+                # --- FIXED SEARCH LOGIC ---
+                search_text = ""
+                with st.spinner("Searching Live Data..."):
+                    try:
+                        with DDGS() as ddgs:
+                            # Search query mein 2026 lazmi dala hai
+                            keywords = f"{prompt} Pakistan rate March 2026"
+                            results = list(ddgs.text(keywords, max_results=3))
+                            search_text = "\n".join([r['body'] for r in results])
+                    except:
+                        search_text = "Live search results temporarily unavailable."
+
+                # Groq AI Response
+                completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {"role": "system", "content": "Aap Chughtai AI hain. Roman Urdu mein jawab dein. Date: 15 March 2026."},
+                        {"role": "user", "content": f"Context: {search_text}\n\nQuestion: {prompt}"}
+                    ]
+                )
+                ans = completion.choices[0].message.content
+                st.write(ans)
+                
+                # Manual Voice Control
+                tts = gTTS(text=ans, lang='hi')
+                tts.save("v.mp3")
+                with open("v.mp3", "rb") as f:
+                    b64 = base64.b64encode(f.read()).decode()
+                    st.markdown(f'**🔊 Suniye:** <audio src="data:audio/mp3;base64,{b64}" controls></audio>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error: Search nahi ho saki. API key check karein.")
