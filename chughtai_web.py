@@ -1,49 +1,39 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Setup API Key
-genai.configure(api_key="AIzaSyAn0IvcL2ja2oc8saRKNsFoxODO15tfcO0")
+# Nayi API Key yahan dhyan se paste karein
+API_KEY = "YAHAN_APNI_NAYI_KEY_PASTE_KAREIN"
 
-# Ye tareeka har model ko 404 se bachata hai
-model = genai.GenerativeModel('gemini-pro') 
+genai.configure(api_key=API_KEY)
 
-st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
+st.set_page_config(page_title="Chughtai AI", page_icon="✨")
 
-# Gemini Look CSS
-st.markdown("""
-    <style>
-    .main { background-color: #131314; }
-    .stChatInput { position: fixed; bottom: 3rem; }
-    </style>
-    """, unsafe_allow_html=True)
+# Interface setup
+st.title("Chughtai AI Assistant")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Welcome message
-if not st.session_state.messages:
-    st.markdown("<h1 style='text-align: center; color: white;'>Hello, Asim Chughtai</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #888;'>Main aapki kaise madad kar sakta hoon?</p>", unsafe_allow_html=True)
-
-# Chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input
-if prompt := st.chat_input("Yahan kuch bhi search karein..."):
+if prompt := st.chat_input("Sawal puchein..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # Response generate karna
+            # Hum 1.5-flash use karenge jo fast hai
+            model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(prompt)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            # Agar phir bhi error aaye to ye chota msg dikhaye
-            st.error("Google Server Busy hai, 30 seconds baad 'Hi' likhein.")
-
             
+            if response.text:
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            else:
+                st.error("Google ne khali jawab bheja hai.")
+        except Exception as e:
+            # Ye line humein asli masla batayegi
+            st.error(f"Error Message: {str(e)}")
