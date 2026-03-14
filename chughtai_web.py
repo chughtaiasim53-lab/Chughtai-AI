@@ -1,5 +1,7 @@
 import streamlit as st
 from groq import Groq
+from gtts import gTTS
+import os
 
 # Groq API Key
 client = Groq(api_key="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")
@@ -22,7 +24,7 @@ st.title("✨ Chughtai AI Assistant")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Welcome message agar chat khali ho
+# Welcome message
 if not st.session_state.messages:
     st.markdown("### Hello, Asim Chughtai")
     st.info("Main aapka personal AI dost hoon. Aap mujhse kheti baari ya family ke bare mein kuch bhi puch sakte hain.")
@@ -40,22 +42,13 @@ if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
 
     with st.chat_message("assistant"):
         try:
-            # AI ki Personality (The Brain)
+            # Groq AI Response
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {
                         "role": "system", 
-                        "content": """
-                        Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain.
-                        Aap dosti se, aqalmandana aur Roman Urdu mein jawab dete hain.
-                        Asim ki details:
-                        - Father: Qadir Dad Chughtai (DSR Rangers).
-                        - Beta: Jahandad (4 saal ka).
-                        - Location: Basti Ahmadabad, Rahim Yar Khan.
-                        - Farming: 2.5 acre farm (Lahsun, Aam, Mung phali).
-                        Asim ke doston ki tarah baat karein aur unhein behtareen mashwaray dein.
-                        """
+                        "content": "Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. Roman Urdu mein jawab dein. Asim ke Father: Qadir Dad, Beta: Jahandad."
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -63,5 +56,11 @@ if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
             answer = completion.choices[0].message.content
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
+
+            # --- LISTEN OPTION (Audio Generator) ---
+            tts = gTTS(text=answer, lang='ur')
+            tts.save("voice.mp3")
+            st.audio("voice.mp3", format="audio/mp3")
+            
         except Exception as e:
             st.error(f"Error: {str(e)}")
