@@ -4,9 +4,17 @@ from gtts import gTTS
 from duckduckgo_search import DDGS 
 import os
 import datetime
+import base64
 
-# Groq API Key
-client = Groq(api_key="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")
+# --- API Key Security ---
+# Streamlit Secrets se key uthayega (gsk_... wali key yahan nahi likhni)
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+except:
+    # Agar secrets nahi hain to default (testing ke liye)
+    api_key = "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"
+
+client = Groq(api_key=api_key)
 
 # Page Layout
 st.set_page_config(page_title="Chughtai AI Live 2026", page_icon="✨", layout="centered")
@@ -44,16 +52,15 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
     with st.chat_message("assistant"):
         try:
             with st.spinner("Internet se bilkul taza (March 2026) data scan ho raha hai..."):
-                # Behtar search query: Specific sites aur Date force karna
+                # Behtar search query
                 refined_prompt = f"{prompt} rate in Pakistan today {aaj_ki_date} live UrduPoint Hamariweb"
                 
                 search_data = ""
                 with DDGS() as ddgs:
-                    # News aur Text dono scan karna behtar results deta hai
                     search_query = [r for r in ddgs.text(refined_prompt, max_results=6)]
                     search_data = "\n".join([f"Content: {r['body']}" for r in search_query])
 
-            # Groq AI Response
+            # Groq AI Response (Llama 3.3)
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
@@ -62,14 +69,14 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
                         "content": f"""Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. 
                         Aaj ki Date: {aaj_ki_date}. 
                         
-                        ROLE: Aap ek news reporter hain. 
+                        ROLE: Aap ek expert news reporter hain. 
                         DATA: {search_data}
                         
                         RULES:
-                        1. Is data mein se sirf March 2026 ke rates batayein. 
-                        2. Agar data purana hai (2024/2025), to saaf keh dein ke 'Taza rate abhi update nahi hua'. 
+                        1. Is data mein se sirf March 2026 ke taza rates batayein. 
+                        2. Agar data purana hai, to saaf kahein ke 'Taza rate abhi update nahi hua'. 
                         3. Jawab Roman Urdu mein dein aur rates ko bold (**) likhein.
-                        4. Petrol aur Gold ke liye sirf authenticated sources ka data uthayein."""
+                        4. Petrol aur Gold ke liye sirf authenticated sources ka data dein."""
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -78,11 +85,16 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # --- LISTEN OPTION (Voice) ---
-            # Urdu Voice ke liye 'hi' (Hindi) ya 'ur' behtar hai
+            # --- LISTEN OPTION (Autoplay Voice) ---
             tts = gTTS(text=answer, lang='hi', slow=False)
             tts.save("voice.mp3")
-            st.audio("voice.mp3", format="audio/mp3", autoplay=True)
+            
+            with open("voice.mp3", "rb") as f:
+                data = f.read()
+                b64 = base64.b64encode(data).decode()
+                st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" autoplay="true"></audio>', unsafe_allow_html=True)
+            
+            st.audio("voice.mp3")
             
         except Exception as e:
-            st.error(f"Network ka masla hai ya API limit khatam ho gayi hai. Error: {str(e)}")
+            st.error(f"Network error: {str(e)}")
