@@ -4,17 +4,10 @@ import google.generativeai as genai
 # Aapki API Key
 genai.configure(api_key="AIzaSyBCvOiIEuU7mWsqTCBddevX2on2xQqmucE")
 
-st.set_page_config(page_title="Chughtai AI", page_icon="✨")
+# 400 error se bachne ke liye sabse stable model
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# --- Model Selection Trick ---
-try:
-    # Pehle 2.0 Flash try karein
-    model = genai.GenerativeModel('gemini-2.0-flash')
-except:
-    # Agar 2.0 na chale to 1.5 Flash try karein
-    model = genai.GenerativeModel('gemini-1.5-flash')
-
-st.title("✨ Chughtai AI (Gemini 2.0)")
+st.title("✨ Chughtai AI Assistant")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -30,6 +23,7 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
+            # Simple content generation
             response = model.generate_content(prompt)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
