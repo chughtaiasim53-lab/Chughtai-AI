@@ -1,5 +1,4 @@
 streamlit
 groq
-duckduckgo-search
+duckduckgo-search==5.3.0
 gTTS
-requests
