@@ -38,7 +38,7 @@ if "messages" not in st.session_state:
 
 # Welcome message
 if not st.session_state.messages:
-    st.info(f"Assalam-o-Alaikum Asim! Aaj {aaj_ki_date} hai. 
+    st.info(f"Assalam-o-Alaikum Asim! Aaj {aaj_ki_date} hai. Main Gold, Petrol aur Live News bilkul sahi bata sakta hoon.")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
