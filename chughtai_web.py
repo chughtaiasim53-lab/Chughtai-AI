@@ -9,7 +9,7 @@ import datetime
 client = Groq(api_key="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")
 
 # Page Layout
-st.set_page_config(page_title="Chughtai AI Live", page_icon="✨", layout="centered")
+st.set_page_config(page_title="Chughtai AI Live 2026", page_icon="✨", layout="centered")
 
 # Aaj ki date
 aaj_ki_date = datetime.date.today().strftime("%d %B %Y")
@@ -30,7 +30,7 @@ if "messages" not in st.session_state:
 
 # Welcome message
 if not st.session_state.messages:
-    st.info(f"Assalam-o-Alaikum Asim! Aaj {aaj_ki_date} hai. Main Live News aur Rates bata sakta hoon.")
+    st.info(f"Assalam-o-Alaikum Asim! Aaj {aaj_ki_date} hai. Main Gold, Petrol aur Live News bilkul sahi bata sakta hoon.")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -43,12 +43,15 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
 
     with st.chat_message("assistant"):
         try:
-            with st.spinner("Internet se bilkul taza data scan ho raha hai..."):
-                # Behtar search query taaki purana data na aaye
-                refined_prompt = f"latest {prompt} in Pakistan {aaj_ki_date} news"
+            with st.spinner("Internet se bilkul taza (March 2026) data scan ho raha hai..."):
+                # Behtar search query: Specific sites aur Date force karna
+                refined_prompt = f"{prompt} rate in Pakistan today {aaj_ki_date} live UrduPoint Hamariweb"
+                
+                search_data = ""
                 with DDGS() as ddgs:
-                    search_query = [r for r in ddgs.text(refined_prompt, max_results=5)]
-                    search_data = "\n".join([f"Source: {r['href']} - Content: {r['body']}" for r in search_query])
+                    # News aur Text dono scan karna behtar results deta hai
+                    search_query = [r for r in ddgs.text(refined_prompt, max_results=6)]
+                    search_data = "\n".join([f"Content: {r['body']}" for r in search_query])
 
             # Groq AI Response
             completion = client.chat.completions.create(
@@ -58,13 +61,15 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
                         "role": "system", 
                         "content": f"""Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. 
                         Aaj ki Date: {aaj_ki_date}. 
-                        IMPORTANT: Niche diye gaye search data ko ghaur se parhein. 
-                        Ismein jo sabse LATEST rate hai (March 2026 ka), sirf wo batayein. 
-                        Agar data mein 2024 ya 2025 likha hai to usay ignore karein. 
-                        User ko Roman Urdu mein jawab dein.
                         
-                        Internet Search Data:
-                        {search_data}"""
+                        ROLE: Aap ek news reporter hain. 
+                        DATA: {search_data}
+                        
+                        RULES:
+                        1. Is data mein se sirf March 2026 ke rates batayein. 
+                        2. Agar data purana hai (2024/2025), to saaf keh dein ke 'Taza rate abhi update nahi hua'. 
+                        3. Jawab Roman Urdu mein dein aur rates ko bold (**) likhein.
+                        4. Petrol aur Gold ke liye sirf authenticated sources ka data uthayein."""
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -73,10 +78,11 @@ if prompt := st.chat_input("Petrol rate ya Gold price puchiye..."):
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # --- LISTEN OPTION (Auto-Play) ---
+            # --- LISTEN OPTION (Voice) ---
+            # Urdu Voice ke liye 'hi' (Hindi) ya 'ur' behtar hai
             tts = gTTS(text=answer, lang='hi', slow=False)
             tts.save("voice.mp3")
             st.audio("voice.mp3", format="audio/mp3", autoplay=True)
             
         except Exception as e:
-            st.error(f"Network ka masla hai. Error: {str(e)}")
+            st.error(f"Network ka masla hai ya API limit khatam ho gayi hai. Error: {str(e)}")
