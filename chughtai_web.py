@@ -1,55 +1,18 @@
-import streamlit as st
-from openai import OpenAI
-from duckduckgo_search import DDGS
-from gtts import gTTS
-import base64
-import datetime
-
-# OpenAI API Key (Yahan apni 'sk-...' wali key dalein)
-client = OpenAI(api_key="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
-            
-st.set_page_config(page_title="Chughtai ChatGPT Live", page_icon="🤖")
-
-st.title("🚀 Chughtai Smart AI (ChatGPT)")
-
-# Aaj ki date
-aaj = datetime.date.today().strftime("%d %B %Y")
-
-if prompt := st.chat_input("Aaj ka Petrol ya Gold rate puchiye..."):
-    st.chat_message("user").markdown(prompt)
-
-    with st.chat_message("assistant"):
-        try:
-            # 1. Internet se Live Search karna
-            with st.spinner("Google se taza maloomat li ja rahi hain..."):
-                with DDGS() as ddgs:
-                    # Pakistan specific search
-                    search_query = f"{prompt} Pakistan today {aaj} live rates"
-                    results = [r for r in ddgs.text(search_query, max_results=3)]
-                    context = "\n".join([r['body'] for r in results])
-
-            # 2. ChatGPT (GPT-4o) ko Search results dikhana
-            response = client.chat.completions.create(
-                model="gpt-4o-mini", # Yeh sasta aur tez model hai
-                messages=[
-                    {"role": "system", "content": f"Aaj ki date {aaj} hai. Is internet data ko use karke Roman Urdu mein jawab dein: {context}"},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            ai_text = response.choices[0].message.content
-            st.markdown(ai_text)
-
-            # 3. Audio (Insaani Awaaz)
-            tts = gTTS(text=ai_text, lang='hi')
-            tts.save("voice.mp3")
-            
-            # Autoplay audio
-            with open("voice.mp3", "rb") as f:
-                data = f.read()
-                b64 = base64.b64encode(data).decode()
-                st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" autoplay="true"></audio>', unsafe_allow_html=True)
-            
-            st.audio("voice.mp3")
-            
-        except Exception as e:
-            st.error(f"Error: {str(e)}")
+curl https://api.x.ai/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer xai-TL9zC1XlpRDTaOeGJXy5V4dAazIejYuFhmplmBlS4gnuO5yTI3VeVwi90SP2aqDwVU1uG6D320LBERBh" \
+    -d '{
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a test assistant."
+        },
+        {
+          "role": "user",
+          "content": "Testing. Just say hi and hello world and nothing else."
+        }
+      ],
+      "model": "grok-4-latest",
+      "stream": false,
+      "temperature": 0
+    }'
