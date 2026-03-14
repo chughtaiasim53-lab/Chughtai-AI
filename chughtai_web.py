@@ -6,69 +6,52 @@ import base64
 import datetime
 
 # --- Groq Setup ---
-# Aapki Key: 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
 client = Groq(api_key="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")
 
-# --- UI Design (Premium Beauty) ---
-st.set_page_config(page_title="Chughtai All-Search AI", page_icon="🔍", layout="centered")
-
-st.markdown("""
-    <style>
-    .stApp { background-color: #0b0e14; color: #ffffff; }
-    .stChatInputContainer { border-radius: 20px !important; border: 2px solid #4facfe !important; }
-    .stChatMessage { background: rgba(255,255,255,0.05); border-radius: 15px; border-left: 5px solid #4facfe; }
-    h1 { background: -webkit-linear-gradient(#00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; font-size: 3rem !important; }
-    </style>
-    """, unsafe_allow_html=True)
-
+st.set_page_config(page_title="Chughtai Smart AI", layout="centered")
 st.title("🔍 Chughtai Smart Search")
 
+# 1. YAHAN HIDAYAT LIKHNI HAIN (System Instructions)
+instructions = """
+Aap ek expert AI hain jo sirf SAHI aur LIVE data par yaqeen rakhta hai.
+1. Agar user koi ghalat rate bataye (maslan Gold 5 lakh), to aap foran internet check karein.
+2. Agar user ghalat hai, to usay pyar se Roman Urdu mein batayein: 'Asim bhai, internet par aaj ka sahi rate ye hai...'
+3. Kabhi bhi user ki ghalat baat par 'Theek hai' mat kahein. 
+4. Hamesha tola aur gram ka farq dhyan mein rakhein.
+"""
+
 aaj = datetime.date.today().strftime("%d %B %Y")
-st.write(f"✨ Welcome **Asim Chughtai**! Aaj ki date hai: **{aaj}**")
 
-# Chat History initialization
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display Chat History
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# User Input (Searching Anything)
-if prompt := st.chat_input("Farming, Gold rates, ya kuch bhi puchiye..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if prompt := st.chat_input("Mujhse sahi rates ya farming ki maloomat lein..."):
+    st.chat_message("user").markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            with st.spinner("Internet se behtareen maloomat dhoondi ja rahi hain..."):
-                # 1. LIVE SEARCH (Har Topic ke liye)
+            with st.spinner("Internet se 100% sahi data check kiya ja raha hai..."):
                 with DDGS() as ddgs:
-                    search_query = f"{prompt} Pakistan today {aaj} latest updates"
-                    results = [r for r in ddgs.text(search_query, max_results=4)]
-                    search_context = "\n".join([f"Info: {r['body']}" for r in results])
+                    # Deep Search query taaki ghalti na ho
+                    search_query = f"{prompt} Pakistan official rates today {aaj} live"
+                    results = [r for r in ddgs.text(search_query, max_results=5)]
+                    search_context = "\n".join([f"Source: {r['body']}" for r in results])
 
-            # 2. GROQ PROCESSING (Llama 3.3 - Super Fast)
+            # 2. YAHAN 'instructions' KO SHAMIL KARNA HAI
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": f"Aap Asim Chughtai ke expert Assistant hain. Aaj {aaj} hai. Internet data ka nichor Roman Urdu mein behtareen tareeqe se dein. Data: {search_context}"},
+                    {"role": "system", "content": f"{instructions} \n Aaj ki date {aaj} hai. Roman Urdu mein jawab dein. Internet Data: {search_context}"},
                     {"role": "user", "content": prompt}
                 ]
             )
             answer = completion.choices[0].message.content
             st.markdown(answer)
-            st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # 3. VOICE OUTPUT
+            # Voice
             tts = gTTS(text=answer, lang='hi')
-            tts.save("search_voice.mp3")
-            with open("search_voice.mp3", "rb") as f:
+            tts.save("voice.mp3")
+            with open("voice.mp3", "rb") as f:
                 data = f.read()
                 b64 = base64.b64encode(data).decode()
                 st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" autoplay="true"></audio>', unsafe_allow_html=True)
             
         except Exception as e:
-            st.error(f"Masla Aa Gaya: {str(e)}")
+            st.error(f"Error: {str(e)}")
