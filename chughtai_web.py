@@ -1,70 +1,66 @@
 import streamlit as st
 from groq import Groq
 from gtts import gTTS
-import base64
 import os
 
-# --- Setup ---
-# Yahan apni Groq Key lazmi dalein
-client = Groq(api_key="gsk_YAHAN_APNI_GROQ_KEY_DALEIN")
+# Groq API Key
+client = Groq(api_key="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")
 
-st.set_page_config(page_title="Chughtai Human AI", page_icon="🎙️", layout="centered")
+# Page Layout
+st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
 
-# Styling taaki interface pyara lage
+# Gemini Dark Theme CSS
 st.markdown("""
     <style>
-    .stApp { background-color: #0e1117; color: white; }
+    .stApp { background-color: #131314; color: #e3e3e3; }
+    .stChatMessage { border-radius: 15px; margin-bottom: 10px; }
     .stChatInput { border-radius: 20px; }
+    h1 { color: #ffffff; font-family: 'Google Sans', sans-serif; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🎙️ Chughtai Human-Voice AI")
-st.info("Main Groq ki madad se bijli ki tarah tez jawab deta hoon aur bolta bhi hoon!")
+st.title("✨ Chughtai AI Assistant")
 
-# --- Chat History Management ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Purani baatein dikhana
+# Welcome message
+if not st.session_state.messages:
+    st.markdown("### Hello, Asim Chughtai")
+    st.info("Main aapka personal AI dost hoon. Aap mujhse kheti baari ya family ke bare mein kuch bhi puch sakte hain.")
+
+# Chat History Display
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- User Input aur Response ---
-if prompt := st.chat_input("Puchiye, main bol kar jawab doon ga..."):
-    # User ka message save karna
+# User Input
+if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # 1. Groq se Fast Response (Context ke sath)
+            # Groq AI Response
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "Aapka naam Gemini hai. Aap Asim Chughtai ke banaye huay AI hain. Roman Urdu mein jawab dein. Asim ke Father: Qadir Dad, Beta: Jahandad."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
             )
-            ai_text = completion.choices[0].message.content
-            st.markdown(ai_text)
-            st.session_state.messages.append({"role": "assistant", "content": ai_text})
+            answer = completion.choices[0].message.content
+            st.markdown(answer)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # 2. Voice (Audio Generation)
-            tts = gTTS(text=ai_text, lang='hi', slow=False) 
-            audio_file = "response.mp3"
-            tts.save(audio_file)
-            
-            # 3. Auto-play Logic
-            with open(audio_file, "rb") as f:
-                data = f.read()
-                b64 = base64.b64encode(data).decode()
-                audio_html = f"""
-                    <audio autoplay="true">
-                    <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                    </audio>
-                    """
-                st.markdown(audio_html, unsafe_allow_html=True)
-            
-            st.audio(audio_file) # Manual player
+            # --- LISTEN OPTION (Audio Generator) ---
+            tts = gTTS(text=answer, lang='ur')
+            tts.save("voice.mp3")
+            st.audio("voice.mp3", format="audio/mp3")
             
         except Exception as e:
-            st.error(f"Masla: {str(e)}")
+            st.error(f"Error: {str(e)}")
