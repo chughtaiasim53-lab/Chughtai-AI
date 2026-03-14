@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # Aapki API Key
-genai.configure(api_key="AIzaSyBvIzr0WuSMefgo48p1v25DUqG5R7noOJU")
+genai.configure(api_key="AIzaSyBCvOiIEuU7mWsqTCBddevX2on2xQqmucE")
 
 st.set_page_config(page_title="Chughtai AI", page_icon="✨")
 
