@@ -8,106 +8,77 @@ import datetime
 # --- API Connection ---
 client = Groq(api_key="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")
 
-# --- CHUGHTAI AI DARK UI CUSTOMIZATION ---
-st.set_page_config(page_title="Chughtai AI", layout="wide", page_icon="✨")
+# --- UI STYLE ---
+st.set_page_config(page_title="Chughtai AI Pro", layout="wide")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0e0e0e; color: #e3e3e3; }
-    .gemini-title {
-        font-family: 'Google Sans', Arial;
-        font-size: 45px;
-        font-weight: 500;
-        background: linear-gradient(to right, #4285f4, #9b72cb, #d96570);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-top: 30px;
-    }
-    .stChatInputContainer {
-        border-radius: 30px !important;
-        border: 1px solid #3c4043 !important;
-        background-color: #1e1f20 !important;
-    }
-    .stButton>button {
-        border-radius: 20px;
-        background-color: #1e1f20;
-        color: #e3e3e3;
-        border: 1px solid #444746;
-        width: 100%;
-    }
-    header, footer {visibility: hidden;}
+    .gemini-title { font-family: 'Google Sans'; font-size: 40px; text-align: center; background: linear-gradient(to right, #4285f4, #9b72cb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stChatInputContainer { border-radius: 30px !important; }
+    /* Sidebar style for History */
+    .css-1639116 { background-color: #1e1f20 !important; } 
     </style>
     """, unsafe_allow_html=True)
 
-# --- LOGIN / NAME LOGIC ---
-if "user_name" not in st.session_state:
-    st.session_state.user_name = None
+# --- HISTORY LOGIC ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Welcome Screen (Pehli baar naam poochna)
-if st.session_state.user_name is None:
-    # Yahan "Gemini 3" ki jagah "Chughtai AI" likha hai
-    st.markdown('<h1 class="gemini-title">Welcome to Chughtai AI</h1>', unsafe_allow_html=True)
-    with st.container():
-        st.write("### Salam! Aapka naam kya hai?")
-        naam = st.text_input("Apna naam likhein...", placeholder="e.g. Asim Chughtai")
-        if st.button("Aagay Barhein ✨"):
-            if naam:
-                st.session_state.user_name = naam
-                st.rerun()
-            else:
-                st.warning("Meharbani karke apna naam likhein!")
-    st.stop() 
+# Sidebar mein History dikhana
+with st.sidebar:
+    st.title("📜 Chat History")
+    if st.button("Clear History"):
+        st.session_state.chat_history = []
+        st.rerun()
+    
+    for i, chat in enumerate(reversed(st.session_state.chat_history)):
+        st.info(f"{chat['user'][:30]}...")
 
 # --- MAIN INTERFACE ---
-user_name = st.session_state.user_name
-st.markdown(f'<h1 class="gemini-title">✨ Hi {user_name}<br><span style="color:#e3e3e3">Where should we start with Chughtai AI?</span></h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="gemini-title">Chughtai AI Super Pro</h1>', unsafe_allow_html=True)
 
-# Central Buttons
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    if st.button("🖼️ Create image"): st.toast("Just describe the image in the chat!")
-with col2:
-    if st.button("🎵 Create music"): st.info("Music feature coming soon!")
-with col3:
-    if st.button("💡 Help me learn"): pass
-with col4:
-    if st.button("📝 Write anything"): pass
+# Chat Display
+for chat in st.session_state.chat_history:
+    with st.chat_message("user"):
+        st.write(chat["user"])
+    with st.chat_message("assistant"):
+        st.write(chat["bot"])
 
-# --- Search & Chat Logic ---
-if prompt := st.chat_input(f"Ask Chughtai AI, {user_name}..."):
+# --- INPUT & SEARCH ---
+if prompt := st.chat_input("Sawal puchiye..."):
+    # User message display
+    with st.chat_message("user"):
+        st.write(prompt)
     
-    # Image logic
-    if "create image" in prompt.lower() or "tasveer" in prompt.lower():
-        with st.spinner("🎨 Generating image..."):
-            img_url = f"https://pollinations.ai/p/{prompt.replace(' ', '%20')}?width=1080&height=1080&model=flux"
-            st.image(img_url, caption=f"Result for: {prompt}")
-    else:
-        # Search Chat
-        with st.chat_message("assistant"):
-            try:
-                with st.spinner("Checking official sources..."):
-                    with DDGS() as ddgs:
-                        r = [res for res in ddgs.text(f"{prompt} Pakistan latest rates 2026", max_results=3)]
-                        context = "\n".join([res['body'] for res in r])
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("Searching..."):
+                with DDGS() as ddgs:
+                    r = [res for res in ddgs.text(f"{prompt} Pakistan 2026", max_results=2)]
+                    context = "\n".join([res['body'] for res in r])
+            
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": "Aap Chughtai AI hain. Roman Urdu mein jawab dein."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0
+            )
+            ans = completion.choices[0].message.content
+            st.write(ans)
+            
+            # Save to History
+            st.session_state.chat_history.append({"user": prompt, "bot": ans})
+            
+            # --- AUDIO LOGIC (No Autoplay) ---
+            tts = gTTS(text=ans, lang='hi')
+            tts.save("v.mp3")
+            with open("v.mp3", "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+                # Autoplay="false" taaki sirf click par chalay
+                st.markdown(f'**Suniye:** <audio src="data:audio/mp3;base64,{b64}" controls autoplay="false"></audio>', unsafe_allow_html=True)
                 
-                aaj = datetime.date.today().strftime("%d %B %Y")
-                completion = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": f"Aap Chughtai AI hain. User ka naam {user_name} hai. Roman Urdu mein jawab dein. Date: {aaj}. Context: {context}"},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0
-                )
-                ans = completion.choices[0].message.content
-                st.markdown(ans)
-                
-                # Voice
-                tts = gTTS(text=ans, lang='hi')
-                tts.save("v.mp3")
-                with open("v.mp3", "rb") as f:
-                    b64 = base64.b64encode(f.read()).decode()
-                    st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" autoplay="true"></audio>', unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
