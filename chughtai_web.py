@@ -10,42 +10,33 @@ import random
 client = Groq(api_key="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")
 
 # --- UI STYLE ---
-st.set_page_config(page_title="Chughtai AI - All In One", layout="wide")
+st.set_page_config(page_title="Chughtai AI - Professional", layout="wide")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0e0e0e; color: #e3e3e3; }
-    .main-title { font-size: 35px; text-align: center; color: #4facfe; font-weight: bold; }
-    .card { background-color: #1e1f20; padding: 20px; border-radius: 12px; border-left: 5px solid #4facfe; margin-bottom: 15px; }
+    .main-title { font-size: 35px; text-align: center; color: #4facfe; font-weight: bold; margin-bottom: 20px; }
+    .card { background-color: #1e1f20; padding: 25px; border-radius: 15px; border-left: 5px solid #4facfe; margin-bottom: 20px; }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     header, footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
 # --- SESSION STATE ---
 if "history" not in st.session_state: st.session_state.history = []
-if "kharcha_list" not in st.session_state: st.session_state.kharcha_list = []
-
-# --- SIDEBAR HISTORY ---
-with st.sidebar:
-    st.markdown("<h2 style='color: #4facfe;'>📜 History</h2>", unsafe_allow_html=True)
-    if st.button("🗑️ Clear History"):
-        st.session_state.history = []
-        st.rerun()
-    for chat in reversed(st.session_state.history):
-        st.info(f"👉 {chat['u'][:30]}...")
 
 # --- MAIN UI ---
-st.markdown('<h1 class="main-title">🚀 Chughtai AI - Super App</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">🚀 Chughtai AI - Construction Pro</h1>', unsafe_allow_html=True)
 
-tabs = st.tabs(["💬 Chat", "🚜 Fasal & Ghar", "📝 Kharcha", "🌊 Tube-well", "🌾 Mandi", "😂 Latifay"])
+tab1, tab2, tab3, tab4 = st.tabs(["💬 AI Chat", "🏠 Ghar & Kamra Planner", "🚜 Fasal Calculator", "🌾 Mandi Rates"])
 
-# --- TAB 1: SMART CHAT ---
-with tabs[0]:
+# --- TAB 1: AI CHAT ---
+with tab1:
     for chat in st.session_state.history:
         with st.chat_message("user"): st.write(chat["u"])
         with st.chat_message("assistant"): st.write(chat["b"])
 
-    if prompt := st.chat_input("Gandum rate ya koi sawal..."):
+    if prompt := st.chat_input("Gandum rate ya koi bhi baat..."):
         st.session_state.history.append({"u": prompt, "b": "Thinking..."})
         st.rerun()
 
@@ -67,78 +58,65 @@ with tabs[0]:
             ans = completion.choices[0].message.content
             st.write(ans)
             st.session_state.history[-1]["b"] = ans
-            tts = gTTS(text=ans, lang='hi'); tts.save("v.mp3")
-            with open("v.mp3", "rb") as f:
-                st.markdown(f'<audio src="data:audio/mp3;base64,{base64.b64encode(f.read()).decode()}" controls autoplay></audio>', unsafe_allow_html=True)
 
-# --- TAB 2: FASAL & GHAR (UPDATED WITH CROP TYPES) ---
-with tabs[1]:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("<div class='card'><h3>🌾 Fasal Calculator</h3>", unsafe_allow_html=True)
-        crop_type = st.selectbox("Fasal Chunain:", ["Gandum (Wheat)", "Kapas (Cotton)", "Thomm (Garlic G1)", "Makai (Corn)", "Munji (Rice)"])
-        acre = st.number_input("Zameen (Acres):", value=3.7, key="k_acre")
-        if st.button("Hisaab Lagayein"):
-            # Fasal ke mutabiq calculations
-            rates = {
-                "Gandum (Wheat)": {"d": 1.2, "u": 2.5, "p": 0.5},
-                "Kapas (Cotton)": {"d": 1.5, "u": 3.0, "p": 1.0},
-                "Thomm (Garlic G1)": {"d": 2.5, "u": 2.0, "p": 2.0},
-                "Makai (Corn)": {"d": 2.0, "u": 4.0, "p": 1.0},
-                "Munji (Rice)": {"d": 1.0, "u": 2.0, "p": 0.5}
-            }
-            f = rates[crop_type]
-            st.success(f"**{crop_type} Report ({acre} Acre):**")
-            st.write(f"🧪 DAP: {round(acre * f['d'], 1)} Bori")
-            st.write(f"🧪 Urea: {round(acre * f['u'], 1)} Bori")
-            st.write(f"🧪 Potash: {round(acre * f['p'], 1)} Bori")
-        st.markdown("</div>", unsafe_allow_html=True)
-    with col2:
-        st.markdown("<div class='card'><h3>🏠 Ghar Planner</h3>", unsafe_allow_html=True)
-        marla = st.number_input("Marla Size:", value=5.0, key="m_size")
-        if st.button("Estimate Check"):
-            st.success(f"**{marla} Marla ka Material:**")
-            st.write(f"🧱 Intein: {int(marla*15000)}")
-            st.write(f"🧪 Cement: {int(marla*110)} Bori")
-            st.write(f"🏗️ Sarya (Steel): {round(marla*0.8, 1)} Ton")
-        st.markdown("</div>", unsafe_allow_html=True)
+# --- TAB 2: ACCURATE CONSTRUCTION PLANNER (FIXED) ---
+with tab2:
+    st.markdown("<div class='card'><h3>🏠 Professional Tameerati Planner</h3>", unsafe_allow_html=True)
+    
+    tameer_type = st.selectbox("Kya tameer karna chahte hain?", 
+                                ["Pura Ghar (Marla Hisaab)", "Akela Kamra (12x14)", "Akela Kitchen", "Akela Bathroom"])
 
-# --- TAB 3: KHARCHA REGISTER ---
-with tabs[2]:
-    st.markdown("<div class='card'><h3>📝 Digital Kharcha Register</h3>", unsafe_allow_html=True)
-    item = st.text_input("Kharcha Detail:")
-    amount = st.number_input("Rupay:", min_value=0)
-    if st.button("Save Kharcha"):
-        st.session_state.kharcha_list.append({"Item": item, "Amount": amount})
-        st.success("Save ho gaya!")
-    if st.session_state.kharcha_list:
-        df = pd.DataFrame(st.session_state.kharcha_list)
-        st.table(df)
-        st.write(f"**Total: Rs. {df['Amount'].sum()}**")
+    if tameer_type == "Pura Ghar (Marla Hisaab)":
+        m_size = st.number_input("Zameen (Marla):", min_value=1.0, value=5.0)
+        if st.button("Pura Ghar Estimate 🏗️"):
+            # Engineer Formula: Marla based calculation
+            intein = m_size * 18000 # Double story allow
+            cement = m_size * 125
+            sarya = m_size * 0.85
+            ret = m_size * 600 # Cubic feet
+            st.success(f"🏠 **{m_size} Marla Ghar ka Mukammal Estimate (Grey Structure):**")
+            st.write(f"🧱 **Intein (Bricks):** {int(intein)}")
+            st.write(f"🧪 **Cement:** {int(cement)} Bori")
+            st.write(f"🏗️ **Sarya (Steel):** {round(sarya, 2)} Ton")
+            st.write(f"⏳ **Ret (Sand):** {int(ret)} Sq. Ft")
+    
+    elif tameer_type == "Akela Kamra (12x14)":
+        if st.button("Kamra Estimate 🛌"):
+            st.success("🛌 **Standard Kamra (12x14) Estimate:**")
+            st.write("🧱 **Intein:** 6,500 (9 inch deewar)")
+            st.write("🧪 **Cement:** 45 Bori (Chhat aur Plaster)")
+            st.write("🏗️ **Sarya:** 0.35 Ton (Chhat ke liye)")
+            st.warning("💰 Andazan Kharcha: 3.5 - 4 Lakh PKR")
+
+    elif tameer_type == "Akela Kitchen":
+        if st.button("Kitchen Estimate 🍳"):
+            st.success("🍳 **Standard Kitchen Estimate:**")
+            st.write("🧱 **Intein:** 3,200")
+            st.write("🧪 **Cement:** 25 Bori")
+            st.write("🏗️ **Sarya:** 0.15 Ton")
+            st.warning("💰 Andazan Kharcha: 2 Lakh PKR")
+
+    elif tameer_type == "Akela Bathroom":
+        if st.button("Bathroom Estimate 🚿"):
+            st.success("🚿 **Standard Bathroom Estimate:**")
+            st.write("🧱 **Intein:** 1,800")
+            st.write("🧪 **Cement:** 15 Bori")
+            st.warning("💰 Andazan Kharcha: 1.2 Lakh PKR")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- TAB 4: TUBE-WELL ---
-with tabs[3]:
-    st.markdown("<div class='card'><h3>🌊 Tube-well Diesel Calc</h3>", unsafe_allow_html=True)
-    h = st.number_input("Ghante (Hours):", value=1.0)
-    if st.button("Diesel Kharcha"):
-        st.error(f"Total Diesel Kharcha: Rs. {int(h * 3.5 * 280)}")
-    st.markdown("</div>", unsafe_allow_html=True)
+# --- TAB 3: FASAL CALCULATOR ---
+with tab3:
+    st.markdown("<div class='card'><h3>🚜 Fasal ke mutabiq Khad (Acre)</h3>", unsafe_allow_html=True)
+    crop = st.selectbox("Fasal Chunain:", ["Gandum", "Kapas", "Thomm (G1)", "Makai", "Munji"])
+    acre = st.number_input("Zameen (Acres):", value=3.7)
+    if st.button("Fasal Hisaab"):
+        r = {"Gandum": (1.2, 2.5), "Kapas": (1.5, 3), "Thomm (G1)": (2.5, 2), "Makai": (2, 4), "Munji": (1, 2)}
+        d, u = r[crop]
+        st.success(f"**{crop} Report ({acre} Acre):** DAP {round(acre*d,1)} | Urea {round(acre*u,1)} Bori")
 
-# --- TAB 5: MANDI ---
-with tabs[4]:
-    st.markdown("<div class='card'><h3>💹 Live Mandi Rates</h3>", unsafe_allow_html=True)
+# --- TAB 4: MANDI RATES ---
+with tab4:
+    st.markdown("<div class='card'><h3>💹 Live Market Rates</h3>", unsafe_allow_html=True)
     st.write("Gandum: Rs. 4,380 | Gold 24K: Rs. 294,000 | Dollar: Rs. 284.5")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# --- TAB 6: LATIFAY (JOKES) ---
-with tabs[5]:
-    st.markdown("<div class='card'><h3>😂 Thora Hans Lein</h3>", unsafe_allow_html=True)
-    jokes = [
-        "Pathan: Yar ye dunya gol hai kya? \n Dost: Haan. \n Pathan: To phir hum kone mein kyun kharay hain?",
-        "Ustad: Sab se purana janwar konsa hai? \n Shagird: Zebra! \n Ustad: Wo kyun? \n Shagird: Kyunke wo Black and White hai.",
-        "Mian Biwi se: Aaj kya pakaya hai? \n Biwi: Zeher! \n Mian: Theek hai, tum kha kar so jana, main bahar se kha loon ga."
-    ]
-    if st.button("Naya Latifa Sunayein"):
-        st.info(random.choice(jokes))
     st.markdown("</div>", unsafe_allow_html=True)
