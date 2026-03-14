@@ -9,7 +9,7 @@ import datetime
 client = Groq(api_key="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")
 
 # --- UI STYLE ---
-st.set_page_config(page_title="Chughtai AI - Super App", layout="wide", page_icon="✨")
+st.set_page_config(page_title="Chughtai AI - All In One", layout="wide", page_icon="✨")
 
 st.markdown("""
     <style>
@@ -26,14 +26,13 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 # --- MAIN SCREEN ---
-st.markdown('<h1 class="main-title">✨ Chughtai AI - All In One</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">✨ Chughtai AI - Super App</h1>', unsafe_allow_html=True)
 
 # --- TABS FOR DIFFERENT FEATURES ---
-tab1, tab2, tab3 = st.tabs(["💬 Search & AI Chat", "🚜 Kisan Markaz", "🏠 Ghar & Zameen Planner"])
+tab1, tab2, tab3 = st.tabs(["💬 Search & AI Chat", "🚜 Kisan Markaz", "🏠 Ghar & Kamra Planner"])
 
 # --- TAB 1: AI CHAT & SEARCH ---
 with tab1:
-    # History Sidebar
     with st.sidebar:
         st.title("📜 Chat History")
         if st.button("Clear History"):
@@ -42,12 +41,11 @@ with tab1:
         for chat in reversed(st.session_state.history):
             st.write(f"👉 {chat['u'][:30]}...")
 
-    # Display Chat
     for chat in st.session_state.history:
         with st.chat_message("user"): st.write(chat["u"])
         with st.chat_message("assistant"): st.write(chat["b"])
 
-    if prompt := st.chat_input("Sawal puchiye (e.g. Aaj ka Sona ya Petrol rate?)..."):
+    if prompt := st.chat_input("Sawal puchiye..."):
         st.session_state.history.append({"u": prompt, "b": "Thinking..."})
         st.rerun()
 
@@ -72,7 +70,6 @@ with tab1:
                     st.write(ans)
                     st.session_state.history[-1]["b"] = ans
                     
-                    # Voice
                     tts = gTTS(text=ans, lang='hi')
                     tts.save("v.mp3")
                     with open("v.mp3", "rb") as f:
@@ -91,7 +88,6 @@ with tab2:
         fasal = st.selectbox("Fasal Chunain:", ["Gandum (Wheat)", "Rice (Basmati)", "Rice (Hybrid)", "Makka (Corn)", "Thomm (Garlic/G1)", "Onion (Pyaz)"])
     
     if st.button("Hisaab Lagayein 🚜"):
-        # Accurate formulas per acre
         rates = {
             "Gandum (Wheat)": {"b": 50, "d": 1, "u": 2, "p": 0.5, "z": 2},
             "Rice (Basmati)": {"b": 7, "d": 1, "u": 2, "p": 0.5, "z": 5},
@@ -109,33 +105,38 @@ with tab2:
         st.markdown(f"<div class='calc-row'><span>🧪 Zinc (33%):</span> <span>{round(acre * f['z'], 2)} KG</span></div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- TAB 3: CONSTRUCTION & ZAMEEN PLANNER ---
+# --- TAB 3: SPECIFIC CONSTRUCTION PLANNER ---
 with tab3:
-    st.markdown("<div class='card'><h3>🏠 Tameerati Planner (Ghar & Zameen)</h3>", unsafe_allow_html=True)
-    col3, col4 = st.columns(2)
-    with col3:
-        marla = st.number_input("Zameen (Marla):", min_value=1.0, step=1.0, value=5.0)
-    with col4:
-        typ = st.selectbox("Kya banana hai?", ["Ghar (Residential)", "Dukanain (Commercial)"])
+    st.markdown("<div class='card'><h3>🏠 Ghar, Kamra & Kitchen Planner</h3>", unsafe_allow_html=True)
+    
+    # Selection for specific items
+    tameer_type = st.selectbox("Kya tameer karna chahte hain?", 
+                                ["Pura Ghar (Marla Hisaab)", "Sirf Ek Kamra (12x14)", "Sirf Kitchen", "Sirf Bathroom", "Kamra + Bathroom"])
 
-    if st.button("Plan Banayein 🏗️"):
-        if typ == "Ghar (Residential)":
-            plan = "3 Bedrooms, 3 Bath" if marla <= 5 else "5 Bedrooms, 5 Bath, Lawn"
-            intein = marla * 15000
-            cement = marla * 110
-            sarya = marla * 0.9
-            st.success(f"🏠 {marla} Marla Ghar ka Andaza:")
-            st.write(f"**Naqsha:** {plan}")
-        else:
-            dukan = int(marla * 2)
-            intein = marla * 12000
-            cement = marla * 90
-            sarya = marla * 0.7
-            st.success(f"🏢 {marla} Marla Commercial Plan:")
-            st.write(f"Is jagah par **{dukan} Dukanain** ban sakti hain.")
-
-        st.markdown(f"<div class='calc-row'><span>🧱 Intein (Bricks):</span> <span>{int(intein)} pieces</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🧪 Cement:</span> <span>{int(cement)} Boriyan</span></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='calc-row'><span>🏗️ Sarya (Steel):</span> <span>{round(sarya, 2)} Ton</span></div>", unsafe_allow_html=True)
-        st.info("💰 Note: Grey structure ka kharcha takreeban 12-15 lakh per marla aayega (March 2026 rates).")
+    if tameer_type == "Pura Ghar (Marla Hisaab)":
+        m_size = st.number_input("Zameen (Marla):", min_value=1.0, value=5.0)
+        if st.button("Ghar ka Estimate Nikalein"):
+            intein = m_size * 15000; cement = m_size * 110; sarya = m_size * 0.9
+            st.success(f"🏠 {m_size} Marla ka Estimate:")
+            st.markdown(f"<div class='calc-row'><span>🧱 Intein (Bricks):</span> <span>{int(intein)}</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='calc-row'><span>🧪 Cement:</span> <span>{int(cement)} Bori</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='calc-row'><span>🏗️ Sarya (Steel):</span> <span>{round(sarya, 2)} Ton</span></div>", unsafe_allow_html=True)
+    
+    else:
+        if st.button(f"{tameer_type} ka Estimate Nikalein"):
+            # Specific room logic
+            if tameer_type == "Sirf Ek Kamra (12x14)":
+                i, c, s, k = 4500, 35, 0.25, "2.5 - 3 Lakh"
+            elif tameer_type == "Sirf Kitchen":
+                i, c, s, k = 2200, 22, 0.15, "1.5 - 2 Lakh"
+            elif tameer_type == "Sirf Bathroom":
+                i, c, s, k = 1200, 15, 0.10, "1 - 1.3 Lakh"
+            elif tameer_type == "Kamra + Bathroom":
+                i, c, s, k = 5800, 50, 0.35, "3.8 - 4.5 Lakh"
+            
+            st.success(f"🛠️ {tameer_type} Report:")
+            st.markdown(f"<div class='calc-row'><span>🧱 Intein:</span> <span>{i}</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='calc-row'><span>🧪 Cement:</span> <span>{c} Bori</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='calc-row'><span>🏗️ Sarya:</span> <span>{s} Ton</span></div>", unsafe_allow_html=True)
+            st.warning(f"💰 Andazan Kharcha: {k} PKR")
     st.markdown("</div>", unsafe_allow_html=True)
