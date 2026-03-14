@@ -1,18 +1,14 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Sahi API Key (Wahi jo aapne nikaali thi)
+# Aapki API Key
 API_KEY = "AIzaSyAskNQNR0gzJWbjbGPREmRStVgHi5wiHdE"
 genai.configure(api_key=API_KEY)
 
 st.set_page_config(page_title="Chughtai AI", page_icon="✨")
 
-# Naya Tareeka: Model list check karke sahi model uthana
-try:
-    # Google ab 'models/gemini-1.5-flash-latest' ko pasand karta hai
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
-except:
-    model = genai.GenerativeModel('gemini-1.5-flash')
+# Sabse stable aur purana naam jo 404 nahi deta
+model = genai.GenerativeModel('gemini-pro')
 
 st.title("✨ Chughtai AI Assistant")
 
@@ -35,6 +31,5 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            # Agar error aaye to technical details ke bajaye asaan msg dikhaye
-            st.error("Technical Issue: Google ka naya update aaya hai. Refresh karke dubara try karein.")
-            st.write(f"Error Detail: {str(e)}")
+            # Agar abhi bhi masla aaye to asli wajah yahan nazar aayegi
+            st.error(f"Technical Error: {str(e)}")
