@@ -1,10 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Aapki API Key (Bilkul sahi wali)
+# Sahi API Key
 genai.configure(api_key="AIzaSyAskNQNR0gzJWbjbGPREmRStVgHi5wiHdE")
 
-# 404 se bachne ke liye naya model name
+# Stable model jo 404 nahi dega
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.title("✨ Chughtai AI Assistant")
