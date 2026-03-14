@@ -6,8 +6,8 @@ import base64
 import datetime
 
 # OpenAI API Key (Yahan apni 'sk-...' wali key dalein)
-client = OpenAI(api_key="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")
-
+client = OpenAI(api_key="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
+            
 st.set_page_config(page_title="Chughtai ChatGPT Live", page_icon="🤖")
 
 st.title("🚀 Chughtai Smart AI (ChatGPT)")
