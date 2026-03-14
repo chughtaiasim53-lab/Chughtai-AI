@@ -4,7 +4,7 @@ import google.generativeai as genai
 # Setup
 genai.configure(api_key="AIzaSyD-Msv12DuyRdKH6yG_BOep9_lT4pha4sk")
 # Sahi model name jo 404 nahi dega
-model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
 
