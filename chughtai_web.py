@@ -64,4 +64,15 @@ if prompt := st.chat_input("Yahan kuch bhi puchiye..."):
             st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as e:
-            st.error(f"Error: {str(e)}")
+            st.error(f"Error: {str(e)}")from gtts import gTTS
+import os
+
+# ... (baaki purana code) ...
+
+if response:
+    st.markdown(response.text)
+    
+    # Audio banane ka tareeka
+    tts = gTTS(text=response.text, lang='ur') # Urdu ke liye 'ur'
+    tts.save("speech.mp3")
+    st.audio("speech.mp3") # Audio player screen par dikhaye
