@@ -26,7 +26,7 @@ if "messages" not in st.session_state:
 
 # Welcome message
 if not st.session_state.messages:
-    st.markdown("### Hello, Asim Chughtai")
+    st.markdown("### Hello,")
     st.info("Main aapka personal AI dost hoon. Aap mujhse kheti baari ya family ke bare mein kuch bhi puch sakte hain.")
 
 # Chat History Display
