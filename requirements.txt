@@ -1,4 +1,5 @@
+google-generativeai
 streamlit
-groq
-duckduckgo-search==5.3.0
+python-dotenv
+Pillow
 gTTS
