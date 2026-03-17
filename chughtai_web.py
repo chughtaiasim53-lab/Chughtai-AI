@@ -5,8 +5,7 @@ from groq import Groq
 st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="wide")
 
 # API Key (Direct)
-GROQ_API_KEY = "Gsk_Zay7aRdnI5ngkti8RQfhWGdyb3FY2qjEEFW4EzY2CAlZ1I1KdhJ9"
-client = Groq(api_key=GROQ_API_KEY)
+GROQ_API_KEY="Gsk_Zay7aRdnI5ngkti8RQfhWGdyb3FY2qjEEFW4EzY2CAlZ1I1KdhJ9"
 
 # Header
 st.title("🤖 Chughtai AI")
