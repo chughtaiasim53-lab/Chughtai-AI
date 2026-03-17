@@ -1,11 +1,21 @@
 import streamlit as st
 from groq import Groq
+import os
+import base64
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Page configuration
 st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="wide")
 
-# API Key
-GROQ_API_KEY = "Gsk_Zay7aRdnI5ngkti8RQfhWGdyb3FY2qjEEFW4EzY2CAlZ1I1KdhJ9"
+# API Key (securely from environment)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    st.error("GROQ_API_KEY environment variable not set!")
+    st.stop()
+
 client = Groq(api_key=GROQ_API_KEY)
 
 # Header Section
@@ -53,18 +63,52 @@ if prompt := st.chat_input("Yahan sawal likhein ya image ke baare mein puchein..
             # System Instruction
             sys_msg = "Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. User ki language mein jawab dein."
             
-            # Agar image upload hai toh Vision Model use karein
+            # Current model selection
             current_model = model_option
-            if uploaded_file and "vision" in model_option:
-                # Vision model logic yahan aayega
-                st.info("Image analysis process ho rahi hai...")
             
+            # Prepare messages
+            messages = [
+                {"role": "system", "content": sys_msg},
+            ]
+            
+            # Agar image upload hai aur vision model selected hai
+            if uploaded_file and "vision" in current_model:
+                st.info("📸 Image analysis process ho rahi hai...")
+                
+                # Read and encode image to base64
+                image_data = uploaded_file.read()
+                base64_image = base64.standard_b64encode(image_data).decode("utf-8")
+                
+                # Determine image media type
+                image_type = uploaded_file.type  # e.g., "image/jpeg"
+                
+                # Add image to message content
+                messages.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": image_type,
+                                "data": base64_image
+                            }
+                        }
+                    ]
+                })
+            else:
+                # Regular text message
+                messages.append({"role": "user", "content": prompt})
+            
+            # Call Groq API
             completion = client.chat.completions.create(
                 model=current_model,
-                messages=[
-                    {"role": "system", "content": sys_msg},
-                    {"role": "user", "content": prompt}
-                ]
+                messages=messages,
+                max_tokens=1024
             )
             
             response = completion.choices[0].message.content
@@ -72,7 +116,7 @@ if prompt := st.chat_input("Yahan sawal likhein ya image ke baare mein puchein..
             st.session_state.messages.append({"role": "assistant", "content": response})
         
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"❌ Error: {e}")
 
 # Clear Button
 if st.sidebar.button("Clear Conversation"):
