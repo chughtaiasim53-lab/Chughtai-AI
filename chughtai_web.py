@@ -8,9 +8,12 @@ st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 GOOGLE_API_KEY = "AIzaSyAajqHHlzBVwBj2QRrr1WxRYAD3lMPIOaQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# --- SIMPLE MODEL SELECTION ---
-# Sirf 'gemini-pro' likhne se version ka masla khatam ho jata hai
-model = genai.GenerativeModel('gemini-pro')
+# --- MODEL INITIALIZATION FIX ---
+# Hum yahan seedha 'gemini-1.5-flash' use karenge bina kisi extra path ke
+try:
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"Model Load Error: {e}")
 
 # 3. App Header
 st.title("🤖 Chughtai AI")
@@ -33,8 +36,7 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # Response generate karna
-            # Hamne system instruction ko seedha prompt mein daal diya hai
+            # AI Response
             response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. Jawab Roman Urdu ya English mein dein: {prompt}")
             
             if response.text:
@@ -42,8 +44,9 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            st.error(f"API Error: {e}")
-            st.info("Mashwara: Agar ye error na jaye, toh Streamlit Dashboard se app ko 'Reboot' karein.")
+            # Agar abhi bhi error aaye toh ye exact detail dikhayega
+            st.error(f"Naya API Error: {e}")
+            st.info("Mashwara: Apni 'requirements.txt' file check karein ke usmein 'google-generativeai' likha hai.")
 
 # Sidebar
 if st.sidebar.button("Clear History"):
