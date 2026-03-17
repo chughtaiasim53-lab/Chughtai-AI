@@ -5,19 +5,17 @@ import google.generativeai as genai
 st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 
 # 2. Google Gemini API Setup
+# Aapki API Key bilkul sahi hai
 GOOGLE_API_KEY = "AIzaSyAajqHHlzBVwBj2QRrr1WxRYAD3lMPIOaQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# --- MODEL INITIALIZATION FIX ---
-# Hum yahan seedha 'gemini-1.5-flash' use karenge bina kisi extra path ke
-try:
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except Exception as e:
-    st.error(f"Model Load Error: {e}")
+# --- SIMPLE MODEL NAME ---
+# Hum yahan sirf 'gemini-1.5-flash' use kar rahe hain
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# 3. App Header
+# 3. Header
 st.title("🤖 Chughtai AI")
-st.markdown(f"**Asim Chughtai son Qadir Dad**")
+st.markdown
 st.markdown("---")
 
 # 4. Chat History
@@ -28,7 +26,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5. User Input aur AI Response
+# 5. Input
 if prompt := st.chat_input("Yahan sawal likhein..."):
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -36,19 +34,13 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # AI Response
-            response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. Jawab Roman Urdu ya English mein dein: {prompt}")
+            # Simple Response call
+            response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. Jawab Roman Urdu mein dein: {prompt}")
             
             if response.text:
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            # Agar abhi bhi error aaye toh ye exact detail dikhayega
-            st.error(f"Naya API Error: {e}")
-            st.info("Mashwara: Apni 'requirements.txt' file check karein ke usmein 'google-generativeai' likha hai.")
-
-# Sidebar
-if st.sidebar.button("Clear History"):
-    st.session_state.messages = []
-    st.rerun()
+            # Yeh line exact error batayegi
+            st.error(f"Error Detail: {e}")
