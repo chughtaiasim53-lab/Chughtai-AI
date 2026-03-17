@@ -2,15 +2,16 @@ import streamlit as st
 import google.generativeai as genai
 
 # 1. Page Configuration
-st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="centered")
+st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 
 # 2. Google Gemini API Setup
+# Aapki key bilkul sahi hai
 GOOGLE_API_KEY = "AIzaSyAajqHHlzBVwBj2QRrr1WxRYAD3lMPIOaQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# --- MODEL NAME UPDATE ---
-# Maine yahan 'gemini-1.5-flash-latest' kiya hai jo zyada stable hai
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+# --- STABLE MODEL SELECTION ---
+# Maine yahan 'gemini-pro' kar diya hai jo har account par chalta hai
+model = genai.GenerativeModel('gemini-pro')
 
 # 3. App Header
 st.title("🤖 Chughtai AI")
@@ -33,7 +34,7 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # System instruction
+            # AI ko instructions dena
             system_instruction = (
                 "Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. "
                 "User ki language (Urdu/Roman Urdu/English) mein jawab dein."
@@ -45,14 +46,12 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
             if response.text:
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
-            else:
-                st.error("AI ne koi jawab nahi diya. Shayad net ka masla hai.")
-                
+            
         except Exception as e:
+            # Agar error aaye toh ye line screen par dikhayegi
             st.error(f"API Error: {e}")
-            st.info("Mashwara: Agar ye error bar-bar aaye toh requirements.txt mein 'google-generativeai' ko update karein.")
 
 # Sidebar
-if st.sidebar.button("Clear Chat History"):
+if st.sidebar.button("Clear History"):
     st.session_state.messages = []
     st.rerun()
