@@ -5,12 +5,11 @@ import google.generativeai as genai
 st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 
 # 2. Google Gemini API Setup
-# Aapki key bilkul sahi hai
 GOOGLE_API_KEY = "AIzaSyAajqHHlzBVwBj2QRrr1WxRYAD3lMPIOaQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# --- STABLE MODEL SELECTION ---
-# Maine yahan 'gemini-pro' kar diya hai jo har account par chalta hai
+# --- SIMPLE MODEL SELECTION ---
+# Sirf 'gemini-pro' likhne se version ka masla khatam ho jata hai
 model = genai.GenerativeModel('gemini-pro')
 
 # 3. App Header
@@ -34,22 +33,17 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # AI ko instructions dena
-            system_instruction = (
-                "Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. "
-                "User ki language (Urdu/Roman Urdu/English) mein jawab dein."
-            )
-            
             # Response generate karna
-            response = model.generate_content(f"{system_instruction}\n\nUser: {prompt}")
+            # Hamne system instruction ko seedha prompt mein daal diya hai
+            response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. Jawab Roman Urdu ya English mein dein: {prompt}")
             
             if response.text:
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            # Agar error aaye toh ye line screen par dikhayegi
             st.error(f"API Error: {e}")
+            st.info("Mashwara: Agar ye error na jaye, toh Streamlit Dashboard se app ko 'Reboot' karein.")
 
 # Sidebar
 if st.sidebar.button("Clear History"):
