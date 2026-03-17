@@ -1,102 +1,80 @@
 import streamlit as st
 from groq import Groq
-from gtts import gTTS
-import base64
-import os
 
-# --- API Connection ---
-client = Groq(api_key="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")
+# Page configuration
+st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="wide")
 
-# --- UI STYLE ---
-st.set_page_config(page_title="Chughtai AI - Kisan Expert", layout="wide")
+# API Key
+GROQ_API_KEY = "Gsk_Zay7aRdnI5ngkti8RQfhWGdyb3FY2qjEEFW4EzY2CAlZ1I1KdhJ9"
+client = Groq(api_key=GROQ_API_KEY)
 
-st.markdown("""
-    <style>
-    .stApp { background-color: #0e0e0e; color: #e3e3e3; }
-    .main-title { font-size: 40px; text-align: center; color: #4facfe; font-weight: bold; }
-    .card { background-color: #1e1f20; padding: 20px; border-radius: 15px; border-left: 5px solid #4facfe; margin-bottom: 20px; }
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
-    header, footer {visibility: hidden;}
-    </style>
-    """, unsafe_allow_html=True)
+# Header Section
+st.title("🤖 Chughtai AI")
+st.markdown(f"**Asim Chughtai son Qadir Dad**")
+st.markdown("---")
 
-# --- SESSION STATE ---
-if "history" not in st.session_state: st.session_state.history = []
+# Sidebar - Model Selection (Jaisa photos mein tha)
+st.sidebar.title("Select AI Model")
+model_option = st.sidebar.radio(
+    "Jis par click karenge usse baat hogi:",
+    [
+        "llama-3.3-70b-versatile", 
+        "llama-3.2-11b-vision-preview", # Yeh image dekh sakta hai
+        "mixtral-8x7b-32768", 
+        "gemma2-9b-it"
+    ]
+)
 
-# --- MAIN SCREEN ---
-st.markdown('<h1 class="main-title">🚜 Chughtai AI - Kisan Markaz</h1>', unsafe_allow_html=True)
+# Image Upload Feature
+st.sidebar.markdown("---")
+uploaded_file = st.sidebar.file_uploader("Image upload karein (Sirf Vision Model ke liye)", type=["jpg", "jpeg", "png"])
 
-tab1, tab2, tab3 = st.tabs(["💬 AI Chat & Voice", "🌾 Fertilizer & Spray Plan", "🏠 Ghar Planner"])
+if uploaded_file:
+    st.sidebar.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
-# --- TAB 1: CHAT ---
-with tab1:
-    for chat in st.session_state.history:
-        with st.chat_message("user"): st.write(chat["u"])
-        with st.chat_message("assistant"): st.write(chat["b"])
+# Chat History
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    if prompt := st.chat_input("Fasal ya bemari ke bare mein puchiye..."):
-        st.session_state.history.append({"u": prompt, "b": "Thinking..."})
-        with st.chat_message("assistant"):
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": "Aap Chughtai AI hain. Roman Urdu mein jawab dein. Date: 15 March 2026."},
-                          {"role": "user", "content": prompt}]
-            )
-            ans = completion.choices[0].message.content
-            st.write(ans)
-            st.session_state.history[-1]["b"] = ans
+# Display Messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat Input
+if prompt := st.chat_input("Yahan sawal likhein ya image ke baare mein puchein..."):
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    with st.chat_message("assistant"):
+        try:
+            # System Instruction
+            sys_msg = "Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. User ki language mein jawab dein."
             
-            # Voice Output
-            try:
-                tts = gTTS(text=ans, lang='hi')
-                tts.save("v.mp3")
-                with open("v.mp3", "rb") as f:
-                    b64 = base64.b64encode(f.read()).decode()
-                    st.markdown(f'<audio src="data:audio/mp3;base64,{b64}" controls autoplay></audio>', unsafe_allow_html=True)
-                os.remove("v.mp3")
-            except: pass
-
-# --- TAB 2: KISAN CALCULATOR (KHAD & SPRAY) ---
-with tab2:
-    st.markdown("<div class='card'><h3>🚜 Per Acre Full Management Plan</h3>", unsafe_allow_html=True)
-    
-    crop = st.selectbox("Fasal Chunain:", 
-                        ["Lehsan (Garlic)", "Gandum (Wheat)", "Kapas (Cotton)", "Dhan (Rice)", "Makai (Maize)"])
-    
-    acre = st.number_input("Zameen (Acres):", value=2.5, min_value=0.1, step=0.1)
-    
-    if st.button("Mukammal Plan Dekhein"):
-        st.markdown(f"### 📋 {crop} Management for {acre} Acre")
+            # Agar image upload hai toh Vision Model use karein
+            current_model = model_option
+            if uploaded_file and "vision" in model_option:
+                # Vision model logic yahan aayega
+                st.info("Image analysis process ho rahi hai...")
+            
+            completion = client.chat.completions.create(
+                model=current_model,
+                messages=[
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            response = completion.choices[0].message.content
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
         
-        # Details according to your crop selection
-        if crop == "Lehsan (Garlic)":
-            st.success("**Fertilizer (Khad):** 2.5 Bori DAP, 2 Bori Urea, 2 Bori Potash (Per Acre)")
-            st.info("**Spray:** Fungicide (Agi-M), Weedicide (Pendimethalin), Amino Acid (For Growth)")
-            st.warning(f"**Seed Total:** {200*acre} - {250*acre} KG")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-        elif crop == "Gandum (Wheat)":
-            st.success("**Fertilizer (Khad):** 1.25 Bori DAP, 2 Bori Urea (Per Acre)")
-            st.info("**Spray:** Weedicide (Chora/Nokila Patta), Fungicide (Agar Zarorat ho)")
-            st.warning(f"**Seed Total:** {40*acre} - {50*acre} KG")
-
-        elif crop == "Kapas (Cotton)":
-            st.success("**Fertilizer (Khad):** 1.5 Bori DAP, 3 Bori Urea, 1 Bori Potash (Per Acre)")
-            st.info("**Spray:** Whitefly Control (Pyriproxyfen), Pink Bollworm (Bifenthrin), Growth Promoter")
-            st.warning(f"**Seed Total:** {6*acre} - {10*acre} KG")
-
-        elif crop == "Dhan (Rice)":
-            st.success("**Fertilizer (Khad):** 1 Bori DAP, 2 Bori Urea, Zinc Sulphate (Per Acre)")
-            st.info("**Spray:** Stem Borer Control (Cartap), Blight Protection (Copper Oxychloride)")
-            st.warning(f"**Seed Total:** {3*acre} - {5*acre} KG (Nursery)")
-
-        elif crop == "Makai (Maize)":
-            st.success("**Fertilizer (Khad):** 2 Bori DAP, 4 Bori Urea (3-4 installments), 1 Bori Potash")
-            st.info("**Spray:** Fall Armyworm Control (Emamectin Benzoate), Growth Spray")
-            st.warning(f"**Seed Total:** {8*acre} - {10*acre} KG")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# --- TAB 3: GHAR PLANNER ---
-with tab3:
-    st.write("### 🏠 Construction Estimate")
-    # Previous code logic remains same
+# Clear Button
+if st.sidebar.button("Clear Conversation"):
+    st.session_state.messages = []
+    st.rerun()
