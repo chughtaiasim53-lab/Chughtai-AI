@@ -15,7 +15,7 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 # 3. Header
 st.title("🤖 Chughtai AI")
-st.markdown
+st.markdown(f"**Asim Chughtai**")
 st.markdown("---")
 
 # 4. Chat History
