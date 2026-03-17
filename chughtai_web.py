@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Page Config
+# 1. Page Configuration
 st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 
 # 2. Google Gemini Setup
@@ -9,10 +9,15 @@ st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
 GOOGLE_API_KEY = "AIzaSyDgq1gVcbvZ7zSZ00YbeEnb_nHsT4n68Q0"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# Model initialize
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- NEW MODEL CALL ---
+# Hum yahan 'gemini-1.5-flash-latest' use karenge jo 404 error nahi deta
+try:
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+except Exception as e:
+    # Agar Flash na chale toh 'gemini-pro' try karein
+    model = genai.GenerativeModel('gemini-pro')
 
-# 3. UI
+# 3. UI Section
 st.title("🤖 Chughtai AI")
 st.markdown("**Asim Chughtai son Qadir Dad**")
 st.markdown("---")
@@ -31,12 +36,17 @@ if prompt := st.chat_input("Yahan sawal likhein..."):
 
     with st.chat_message("assistant"):
         try:
-            # AI Response
+            # AI Response Generation
             response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain: {prompt}")
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
+            
+            if response.text:
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            
         except Exception as e:
-            st.error(f"Error: {e}")
+            # Agar abhi bhi error aaye toh exact detail dikhayega
+            st.error(f"Response Error: {e}")
+            st.info("Mashwara: Google AI Studio mein ja kar 'Safety Settings' off karke dekhein.")
 
 # Sidebar
 if st.sidebar.button("Clear Chat"):
