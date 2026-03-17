@@ -1,36 +1,23 @@
 import streamlit as st
-from groq import Groq
+import google.generativeai as genai
 
-# 1. Page Configuration
-st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="wide")
+# 1. Page Configuration (App Title aur Look)
+st.set_page_config(page_title="Chughtai AI", page_icon="🤖", layout="centered")
 
-# 2. Naya API Key - Jo aapne abhi di hai
-GROQ_API_KEY = "Gsk_RflT2OrPfBrhlpa6GuKOWGdyb3FY5v9Mqu1YYf91iAmZaEBAwa2j"
-client = Groq(api_key=GROQ_API_KEY)
+# 2. Google Gemini API Setup
+# Aapki di hui key yahan set kar di gayi hai
+GOOGLE_API_KEY = "AIzaSyAajqHHlzBVwBj2QRrr1WxRYAD3lMPIOaQ"
+genai.configure(api_key=GOOGLE_API_KEY)
 
-# 3. Header
+# Model initialize karna
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 3. App Header
 st.title("🤖 Chughtai AI")
 st.markdown(f"**Asim Chughtai son Qadir Dad**")
 st.markdown("---")
 
-# 4. Sidebar - Model Selection (Jaisa aapne images mein dikhaya tha)
-st.sidebar.title("Select AI Model")
-model_option = st.sidebar.radio(
-    "Jis par click karenge usse baat hogi:",
-    [
-        "llama-3.3-70b-versatile", 
-        "llama-3.2-11b-vision-preview", 
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it"
-    ]
-)
-
-# Sidebar Clear Button
-if st.sidebar.button("Clear Chat History"):
-    st.session_state.messages = []
-    st.rerun()
-
-# 5. Chat History Setup
+# 4. Chat History (Taki AI purani baatein yaad rakhe)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -39,32 +26,35 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 6. Chat Input aur AI Response
-if prompt := st.chat_input("Yahan sawal likhein ya puchiye..."):
-    # User ka message
+# 5. User Input aur AI Response logic
+if prompt := st.chat_input("Yahan sawal likhein..."):
+    # User ka message display karna
     with st.chat_message("user"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # AI ka response generate karna
+    # AI ka jawab nikalna
     with st.chat_message("assistant"):
         try:
-            # System instructions
-            instruction = (
-                "Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain. "
-                "User jis language mein sawal pooche, usi mein jawab dein (English, Urdu, ya Roman Urdu)."
+            # AI ko instructions dena (System Prompt)
+            system_instruction = (
+                "Aap Chughtai AI hain. Aapke owner Asim Chughtai son Qadir Dad hain. "
+                "Aap kisanon aur aam logon ki madad ke liye banaye gaye hain. "
+                "User jis language mein sawal pooche (Urdu, Roman Urdu, ya English), "
+                "usi mein mukammal aur behtareen jawab dein."
             )
             
-            completion = client.chat.completions.create(
-                model=model_option,
-                messages=[
-                    {"role": "system", "content": instruction},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            response = completion.choices[0].message.content
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # AI se response mangna (System instruction + User ka sawal)
+            response = model.generate_content(f"{system_instruction}\n\nUser: {prompt}")
+            ai_text = response.text
+            
+            st.markdown(ai_text)
+            st.session_state.messages.append({"role": "assistant", "content": ai_text})
             
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"API Error: {e}")
+
+# Sidebar mein clear button
+if st.sidebar.button("Clear Chat History"):
+    st.session_state.messages = []
+    st.rerun()
