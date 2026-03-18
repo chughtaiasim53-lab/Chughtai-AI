@@ -2,44 +2,59 @@ import streamlit as st
 from groq import Groq
 
 # --- Setup ---
-# Aapki provide ki gayi Groq API Key
 API_KEY = "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"
 client = Groq(api_key=API_KEY)
 
-# Page Configuration
-st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
+st.set_page_config(page_title="Chughtai AI", page_icon="🚀", layout="centered")
 
-# --- CSS for Gemini Dark Look ---
+# --- CSS for Modern Dark Look ---
 st.markdown("""
     <style>
-    .stApp { background-color: #131314; color: #e3e3e3; }
-    h1 { color: #e3e3e3; font-family: 'Google Sans', sans-serif; text-align: center; }
-    .stChatInput { position: fixed; bottom: 3rem; }
-    .stChatMessage { border-radius: 15px; margin-bottom: 10px; }
+    .stApp { background-color: #0e1117; color: #ffffff; }
+    h1 { text-align: center; font-family: 'Google Sans'; }
+    .stChatInput { position: fixed; bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
-# User ka naam store karna
+# Session States
 if "user_name" not in st.session_state:
     st.session_state.user_name = ""
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Agar naam nahi pata to pehle naam puchein
+# --- 1. Login Screen (With Balloons) ---
 if not st.session_state.user_name:
-    st.markdown("<br><br><br><h1>Welcome to Chughtai AI</h1>", unsafe_allow_html=True)
-    name_input = st.text_input("Apna naam likhein shuru karne ke liye:", key="name_box")
+    st.markdown("<br><br><h1>Chughtai AI</h1>", unsafe_allow_html=True)
+    name_input = st.text_input("Apna naam likhein shuru karne ke liye:", placeholder="Asim Chughtai...")
+    
     if name_input:
         st.session_state.user_name = name_input
+        st.balloons() # 🎉 Celebration
+        st.success(f"Welcome {name_input}!")
         st.rerun()
+
 else:
-    # Chat Interface
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # --- 2. Sidebar Mein Extra Features ---
+    with st.sidebar:
+        st.title("Chughtai AI Tools")
+        st.info(f"User: {st.session_state.user_name}")
+        
+        # Audio Input Feature
+        st.subheader("🎤 Voice Chat")
+        audio_file = st.audio_input("Record karein")
+        if audio_file:
+            st.write("Audio received! (Isse text mein badalne ke liye Whisper API chahiye hogi)")
 
-    # Welcome Message (Sirf shuru mein dikhega)
-    if len(st.session_state.messages) == 0:
-        st.markdown(f"<br><br><h1>Hello, {st.session_state.user_name}</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #888;'>Main Chughtai AI hoon, aapki kaise madad kar sakta hoon?</p>", unsafe_allow_html=True)
+        # Camera Input Feature
+        st.subheader("📸 Camera")
+        img_file = st.camera_input("Photo khinchein")
+        if img_file:
+            st.image(img_file, caption="Aapki Photo", use_container_width=True)
+            st.toast("Nice photo!")
 
+    # --- 3. Main Chat Interface ---
+    st.markdown(f"### Hello, {st.session_state.user_name} ✨")
+    
     # Purani chat dikhana
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -47,5 +62,27 @@ else:
 
     # Chat Input
     if prompt := st.chat_input("Yahan kuch bhi poochein..."):
-        # User ka msg dikhana
-        st
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # AI Response
+        with st.chat_message("assistant"):
+            try:
+                completion = client.chat.completions.create(
+                    model="llama3-8b-8192",
+                    messages=[
+                        {"role": "system", "content": f"Your name is Chughtai AI. You are a genius AI assistant talking to {st.session_state.user_name}."},
+                        *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+                    ],
+                )
+                response = completion.choices[0].message.content
+                st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+            except Exception as e:
+                st.error("Connection Error! Check internet.")
+
+    # Reset Chat Button
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
