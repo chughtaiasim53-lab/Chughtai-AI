@@ -1,54 +1,51 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 
-# 1. Page Configuration
-st.set_page_config(page_title="Chughtai AI", page_icon="🤖")
+# --- Setup ---
+# Aapki provide ki gayi Groq API Key
+API_KEY = "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"
+client = Groq(api_key=API_KEY)
 
-# 2. Google Gemini Setup
-# Aapki Nayi Key bilkul sahi hai
-GOOGLE_API_KEY = "AIzaSyDgq1gVcbvZ7zSZ00YbeEnb_nHsT4n68Q0"
-genai.configure(api_key=GOOGLE_API_KEY)
+# Page Configuration
+st.set_page_config(page_title="Chughtai AI", page_icon="✨", layout="centered")
 
-# --- NEW MODEL CALL ---
-# Hum yahan 'gemini-1.5-flash-latest' use karenge jo 404 error nahi deta
-try:
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
-except Exception as e:
-    # Agar Flash na chale toh 'gemini-pro' try karein
-    model = genai.GenerativeModel('gemini-pro')
+# --- CSS for Gemini Dark Look ---
+st.markdown("""
+    <style>
+    .stApp { background-color: #131314; color: #e3e3e3; }
+    h1 { color: #e3e3e3; font-family: 'Google Sans', sans-serif; text-align: center; }
+    .stChatInput { position: fixed; bottom: 3rem; }
+    .stChatMessage { border-radius: 15px; margin-bottom: 10px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# 3. UI Section
-st.title("🤖 Chughtai AI")
-st.markdown("**Asim Chughtai son Qadir Dad**")
-st.markdown("---")
+# User ka naam store karna
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# Agar naam nahi pata to pehle naam puchein
+if not st.session_state.user_name:
+    st.markdown("<br><br><br><h1>Welcome to Chughtai AI</h1>", unsafe_allow_html=True)
+    name_input = st.text_input("Apna naam likhein shuru karne ke liye:", key="name_box")
+    if name_input:
+        st.session_state.user_name = name_input
+        st.rerun()
+else:
+    # Chat Interface
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    # Welcome Message (Sirf shuru mein dikhega)
+    if len(st.session_state.messages) == 0:
+        st.markdown(f"<br><br><h1>Hello, {st.session_state.user_name}</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #888;'>Main Chughtai AI hoon, aapki kaise madad kar sakta hoon?</p>", unsafe_allow_html=True)
 
-if prompt := st.chat_input("Yahan sawal likhein..."):
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Purani chat dikhana
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    with st.chat_message("assistant"):
-        try:
-            # AI Response Generation
-            response = model.generate_content(f"Aap Chughtai AI hain. Owner Asim Chughtai son Qadir Dad hain: {prompt}")
-            
-            if response.text:
-                st.markdown(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-            
-        except Exception as e:
-            # Agar abhi bhi error aaye toh exact detail dikhayega
-            st.error(f"Response Error: {e}")
-            st.info("Mashwara: Google AI Studio mein ja kar 'Safety Settings' off karke dekhein.")
-
-# Sidebar
-if st.sidebar.button("Clear Chat"):
-    st.session_state.messages = []
-    st.rerun()
+    # Chat Input
+    if prompt := st.chat_input("Yahan kuch bhi poochein..."):
+        # User ka msg dikhana
+        st
